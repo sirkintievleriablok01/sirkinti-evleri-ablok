@@ -1,0 +1,1209 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Sirkinti Evleri Yönetim Sistemi</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;-webkit-tap-highlight-color:transparent}
+:root{--bg:#f5f7fb;--surface:#fff;--surface-soft:#eef2f9;--primary:#2a5c9e;--primary-light:#e6edf9;--primary-dark:#1e3f6e;--text:#1e293b;--text-soft:#64748b;--border:#dbe3ee;--success:#2e7d32;--success-bg:#e8f5e9;--danger:#c62828;--danger-bg:#ffebee;--warning:#b26a00;--warning-bg:#fff8e1;--info:#1565c0;--info-bg:#e3f2fd;--shadow:0 2px 8px rgba(0,0,0,.05);--radius:14px;--radius-sm:10px;--wa:#25d366}
+body{background:var(--bg);color:var(--text);padding-bottom:80px;font-size:14.5px;line-height:1.5}
+.header{background:linear-gradient(135deg,#2a5c9e,#1e3f6e);color:#fff;padding:20px 16px 22px;border-bottom-left-radius:22px;border-bottom-right-radius:22px}
+.header h1{font-size:1.05rem;font-weight:700;letter-spacing:.3px}
+.header .sub{font-size:.78rem;opacity:.85;margin-top:2px}
+.header-row{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.app{max-width:640px;margin:0 auto;padding:14px 12px}
+.card{background:var(--surface);border-radius:var(--radius);padding:14px;margin-bottom:14px;box-shadow:var(--shadow);border:1px solid var(--border)}
+.card-title{font-size:.95rem;font-weight:700;color:var(--primary-dark);display:flex;align-items:center;gap:8px;margin-bottom:12px;flex-wrap:wrap}
+.card-title .badge-cnt{background:var(--primary-light);color:var(--primary);font-size:.72rem;padding:2px 8px;border-radius:20px;font-weight:600}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+.stat{background:#fff;border-radius:var(--radius-sm);padding:12px;box-shadow:var(--shadow);border:1px solid var(--border)}
+.stat .lbl{font-size:.68rem;text-transform:uppercase;letter-spacing:.03em;color:var(--text-soft);margin-bottom:4px;font-weight:600}
+.stat .val{font-size:1.25rem;font-weight:800;color:var(--primary-dark)}
+.stat.green{border-left:4px solid var(--success)}.stat.red{border-left:4px solid var(--danger)}.stat.yellow{border-left:4px solid var(--warning)}.stat.blue{border-left:4px solid var(--info)}
+.big-stat{background:#fff;border-radius:var(--radius);padding:20px 16px;box-shadow:var(--shadow);border:1px solid var(--border);margin-bottom:12px;text-align:center}
+.big-stat .lbl{font-size:.75rem;text-transform:uppercase;letter-spacing:.05em;color:var(--text-soft);margin-bottom:8px;font-weight:700}
+.big-stat .val{font-size:1.9rem;font-weight:800}
+.big-stat.balance{border-top:4px solid var(--success)}.big-stat.balance .val{color:var(--success)}
+.big-stat.expense{border-top:4px solid var(--danger)}.big-stat.expense .val{color:var(--danger)}
+.li{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border);gap:10px;flex-wrap:wrap}
+.li:last-child{border-bottom:none}
+.li-t{font-weight:600;font-size:.88rem}
+.li-d{font-size:.74rem;color:var(--text-soft);margin-top:2px}
+.li-v{font-weight:700;color:var(--primary-dark);white-space:nowrap;font-size:.88rem}
+.li-v.green{color:var(--success)}.li-v.red{color:var(--danger)}.li-v.teal{color:#00897b}
+.li-actions{display:flex;gap:4px;flex-shrink:0}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:11px 16px;border-radius:30px;font-weight:600;font-size:.85rem;border:none;cursor:pointer;transition:.15s;background:var(--surface-soft);color:var(--text)}
+.btn-primary{background:var(--primary);color:#fff}.btn-success{background:var(--success);color:#fff}.btn-danger{background:var(--danger);color:#fff}.btn-wa{background:var(--wa);color:#fff}.btn-teal{background:#00897b;color:#fff}
+.btn-block{width:100%}
+.btn-sm{padding:6px 11px;font-size:.75rem;border-radius:20px}
+.btn-xs{padding:4px 9px;font-size:.7rem;border-radius:16px}
+.btn-ghost{background:rgba(255,255,255,.18);color:#fff;border:none;padding:7px 13px;border-radius:20px;font-size:.78rem;cursor:pointer;font-weight:600}
+.fg{margin-bottom:10px}
+.fg label{display:block;font-size:.75rem;font-weight:600;color:var(--text-soft);margin-bottom:4px}
+.fc{width:100%;padding:10px 12px;border-radius:10px;border:1px solid var(--border);background:#fff;font-size:.9rem;font-family:inherit}
+.fc:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 3px rgba(42,92,158,.1)}
+textarea.fc{resize:vertical;min-height:80px}
+.bnav{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid var(--border);display:flex;justify-content:space-around;padding:6px 2px max(8px,env(safe-area-inset-bottom));z-index:50;max-width:640px;margin:0 auto}
+.bnav button{background:none;border:none;display:flex;flex-direction:column;align-items:center;gap:2px;font-size:.62rem;color:var(--text-soft);padding:5px 2px;flex:1;cursor:pointer;font-weight:600}
+.bnav button .ic{font-size:1.15rem}
+.bnav button.active{color:var(--primary)}
+.apt-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
+.apt-btn{background:var(--surface-soft);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 2px;text-align:center;font-weight:700;font-size:.8rem;cursor:pointer;color:var(--text)}
+.apt-btn.paid{background:var(--success-bg);border-color:#a5d6a7;color:#1b5e20}
+.apt-btn.unpaid{background:var(--danger-bg);border-color:#ef9a9a;color:#b71c1c}
+.apt-btn.partial{background:var(--warning-bg);border-color:#ffcc80;color:#e65100}
+.apt-btn.muaf{background:#e9edf3;border-color:#cbd5e1;color:#5b6b7f}
+.apt-btn.alacakli{background:#e0f2f1;border-color:#80cbc4;color:#00695c}
+.apt-btn.empty{background:#f8fafc;border-color:#e2e8f0;color:#94a3b8}
+.tbl-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;border-radius:10px;border:1px solid var(--border);position:relative}
+table{width:100%;border-collapse:separate;border-spacing:0;font-size:.72rem;background:#fff}
+th,td{padding:7px 6px;text-align:center;border-bottom:1px solid var(--border);border-right:1px solid #f1f5f9;white-space:nowrap}
+th{background:#f8fafc;color:var(--text-soft);font-weight:700;font-size:.66rem;text-transform:uppercase}
+td.left,th.left{text-align:left;padding-left:10px}
+.sticky-col-1{position:sticky;left:0;background:#fff;z-index:3;min-width:52px}
+.sticky-col-2{position:sticky;left:52px;background:#fff;z-index:3;min-width:110px;box-shadow:2px 0 4px rgba(0,0,0,.06)}
+th.sticky-col-1,th.sticky-col-2{background:#f8fafc;z-index:4}
+tr:last-child td{border-bottom:none}
+.cell-paid{background:var(--success-bg);color:var(--success);font-weight:700}
+.cell-unpaid{background:var(--danger-bg);color:var(--danger);font-weight:700}
+.cell-old{background:#e9edf3;color:#5b6b7f;font-weight:600;font-style:italic}
+.cell-muaf{background:var(--info-bg);color:var(--info);font-weight:700}
+.cell-empty{color:#cbd5e1}
+.tabs{display:flex;gap:6px;overflow-x:auto;padding-bottom:8px;margin-bottom:12px;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tab{padding:7px 14px;border-radius:30px;background:var(--surface-soft);font-size:.78rem;font-weight:600;white-space:nowrap;cursor:pointer}
+.tab.active{background:var(--primary);color:#fff}
+.mov{position:fixed;inset:0;background:rgba(15,23,42,.5);display:none;align-items:flex-end;justify-content:center;z-index:200}
+.mov.open{display:flex}
+.mod{background:#fff;width:100%;max-width:640px;border-top-left-radius:22px;border-top-right-radius:22px;padding:20px 16px;max-height:92vh;overflow-y:auto;position:relative}
+.mod .close{position:absolute;top:14px;right:14px;background:#f1f5f9;border:none;width:32px;height:32px;border-radius:50%;font-size:1rem;cursor:pointer;font-weight:700;color:#64748b;z-index:10}
+.mod h2{font-size:1.05rem;margin-bottom:14px;color:var(--primary-dark);padding-right:40px}
+.row{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.muted{color:var(--text-soft);font-size:.78rem}
+.sec-title{font-size:.78rem;font-weight:700;color:var(--primary-dark);text-transform:uppercase;letter-spacing:.04em;margin:6px 0 8px}
+.divider{height:1px;background:var(--border);margin:12px 0}
+.empty{text-align:center;padding:26px 16px;color:var(--text-soft);font-size:.85rem}
+.tag{display:inline-block;padding:2px 8px;border-radius:6px;background:var(--surface-soft);color:var(--text-soft);font-size:.68rem;font-weight:600;margin-right:4px}
+.more-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.more-item{background:#fff;border-radius:var(--radius-sm);padding:14px 10px;text-align:center;box-shadow:var(--shadow);border:1px solid var(--border);cursor:pointer;font-size:.8rem;font-weight:600;display:flex;flex-direction:column;align-items:center;gap:6px}
+.more-item .ic{font-size:1.4rem;color:var(--primary)}
+.bh-row{display:grid;grid-template-columns:80px 1fr 90px;gap:6px;padding:8px 10px;border:1px solid var(--border);border-radius:8px;background:#fff;margin-bottom:5px;font-size:.78rem;align-items:center}
+.bh-row .bh-date{font-weight:700;color:var(--primary-dark);font-size:.72rem}
+.bh-row .bh-name{font-weight:600}
+.bh-row .bh-desc{font-size:.68rem;color:var(--text-soft);grid-column:2/3}
+.bh-row .bh-amt{font-weight:700;color:var(--success);text-align:right;font-size:.78rem}
+.bh-actions{display:flex;gap:3px;justify-content:flex-end;grid-column:3/4;margin-top:3px}
+.hidden{display:none!important}
+.uyari{background:#fff8e1;border:1px solid #ffe082;color:#8a6d00;padding:10px 12px;border-radius:10px;font-size:.78rem;margin-bottom:10px}
+.uyari.teal{background:#e0f2f1;border-color:#80cbc4;color:#00695c}
+.uyari.red{background:#ffebee;border-color:#ef9a9a;color:#b71c1c}
+.uyari.green{background:#e8f5e9;border-color:#a5d6a7;color:#1b5e20}
+.login-wrap{max-width:400px;margin:40px auto;padding:24px;background:#fff;border-radius:var(--radius);box-shadow:var(--shadow);border:1px solid var(--border)}
+.login-wrap h2{text-align:center;color:var(--primary-dark);margin-bottom:6px;font-size:1.1rem}
+.login-wrap .sub{text-align:center;color:var(--text-soft);font-size:.8rem;margin-bottom:20px}
+.login-err{background:var(--danger-bg);color:var(--danger);border:1px solid #ef9a9a;padding:10px 12px;border-radius:10px;font-size:.82rem;margin-bottom:12px;text-align:center}
+.sakin-uyari{background:linear-gradient(135deg,#e3f2fd,#bbdefb);color:#0d47a1;padding:12px 14px;border-radius:12px;margin-bottom:14px;font-size:.82rem;border:1px solid #90caf9}
+#syncBar{position:fixed;top:0;left:0;right:0;height:3px;background:transparent;z-index:999;transition:background .3s}
+#syncBar.saving{background:linear-gradient(90deg,#ffc107,#ff9800,#ffc107);background-size:200% 100%;animation:slide 1s linear infinite}
+#syncBar.saved{background:#4caf50}
+#syncBar.error{background:#f44336}
+@keyframes slide{0%{background-position:0 0}100%{background-position:200% 0}}
+#syncStatus{position:fixed;top:8px;right:8px;background:rgba(0,0,0,.75);color:#fff;padding:4px 10px;border-radius:20px;font-size:.7rem;font-weight:600;z-index:998;opacity:0;transition:opacity .3s}
+#syncStatus.show{opacity:1}
+.pdf-ozet{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
+.pdf-ozet .stat-mini{background:var(--surface-soft);border-radius:10px;padding:10px;text-align:center}
+.pdf-ozet .stat-mini .lbl{font-size:.68rem;color:var(--text-soft);font-weight:600;text-transform:uppercase}
+.pdf-ozet .stat-mini .val{font-size:1.1rem;font-weight:800;color:var(--primary-dark);margin-top:3px}
+#loadingScreen{position:fixed;inset:0;background:#f5f7fb;display:flex;align-items:center;justify-content:center;flex-direction:column;z-index:9999;gap:16px}
+#loadingScreen .spinner{width:44px;height:44px;border:4px solid #e0e7ef;border-top-color:#2a5c9e;border-radius:50%;animation:spin 1s linear infinite}
+#loadingScreen .txt{color:#64748b;font-size:.85rem;font-weight:600}
+@keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+<div id="loadingScreen"><div class="spinner"></div><div class="txt">Yükleniyor...</div></div>
+<div id="syncBar"></div>
+<div id="syncStatus"></div>
+<div id="app"></div>
+<nav class="bnav" id="bnav"></nav>
+<div class="mov" id="mov"><div class="mod" id="mod"><button class="close" onclick="closeModal()">✕</button><div id="modBody"></div></div></div>
+
+<script>
+const STORAGE_KEY = 'sirkinti_evleri_db_v5';
+const FIRESTORE_COLLECTION = 'sirkinti_data';
+const FIRESTORE_DOC = 'state';
+const YETKILI_EMAIL = 'yonetici@sikintievleri.com';
+const TOPLAM_DAIRE = 30;
+const BLOK_ADI = 'A';
+
+const SEED_APARTMENTS = [];
+for(let i = 1; i <= TOPLAM_DAIRE; i++){ SEED_APARTMENTS.push({blok: BLOK_ADI, daire: i, isim: '', telefon: '', plaka: '', evsahibi: '', evTel: ''}); }
+const SEED_AIDAT = {};
+SEED_APARTMENTS.forEach(a => { SEED_AIDAT[BLOK_ADI + a.daire] = new Array(12).fill(''); });
+const AY_ADLARI = ['OCAK','ŞUBAT','MART','NİSAN','MAYIS','HAZİRAN','TEMMUZ','AĞUSTOS','EYLÜL','EKİM','KASIM','ARALIK'];
+const AIDAT_TUTAR = 500;
+const TOPLAM_BEKLE = 6000;
+const DEFAULT_SABLONLAR = {
+  borcHatirlatma: "Sayın {ISIM} ({DAIRE}),\n\nSirkinti Evleri yönetimi olarak bilgilendiriyoruz:\n\n💰 AİDAT DURUMU\n• Ödenen: {AIDAT_ODENEN}\n• Kalan Borç: {AIDAT_BORC}\n\n⏳ *TOPLAM BEKLENEN: {TOPLAM_BORC}*\n\nÖdemenizi en kısa sürede yapmanızı rica ederiz.\nİyi günler dileriz.\n— Site Yönetimi",
+  borcYok: "Sayın {ISIM} ({DAIRE}),\n\nSirkinti Evleri yönetimi olarak bilgilendiriyoruz:\n\n✅ Ödemeniz bulunmamaktadır. Duyarlılığınız için teşekkür ederiz.\n\nİyi günler dileriz.\n— Site Yönetimi",
+  ozelDuyuru: "Sayın {ISIM} ({DAIRE}),\n\n{ICERIK}\n\n— Site Yönetimi"
+};
+function loadLocalDB(){ const raw = localStorage.getItem(STORAGE_KEY); if(raw){ try{ return JSON.parse(raw); }catch(e){} } return null; }
+function saveLocalDB(db){ try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(db)); }catch(e){} }
+function seedDB(){
+  return {
+    apartments: JSON.parse(JSON.stringify(SEED_APARTMENTS)),
+    aidat: JSON.parse(JSON.stringify(SEED_AIDAT)),
+    demirbas: {}, demirbasProjeler: [], eskiOturan: [],
+    giderler: [], duyurular: [], islemler: [], bankaHareketleri: [],
+    auditLogs: [], bildirimGecmisi: [], fazlaOdemeler: {}, bankaBakiyesi: 0,
+    sablonlar: JSON.parse(JSON.stringify(DEFAULT_SABLONLAR)),
+    settings:{ aidatTutar: AIDAT_TUTAR, toplamBekle: TOPLAM_BEKLE }, _seeded: true
+  };
+}
+let db = loadLocalDB() || seedDB();
+if(!db.aidat) db.aidat = JSON.parse(JSON.stringify(SEED_AIDAT));
+if(!db.demirbas) db.demirbas = {};
+if(!db.demirbasProjeler) db.demirbasProjeler = [];
+if(!db.eskiOturan) db.eskiOturan = [];
+if(!db.giderler) db.giderler = [];
+if(!db.duyurular) db.duyurular = [];
+if(!db.islemler) db.islemler = [];
+if(!db.bankaHareketleri) db.bankaHareketleri = [];
+if(!db.bildirimGecmisi) db.bildirimGecmisi = [];
+if(!db.fazlaOdemeler) db.fazlaOdemeler = {};
+if(db.bankaBakiyesi === undefined) db.bankaBakiyesi = 0;
+if(!db.sablonlar) db.sablonlar = JSON.parse(JSON.stringify(DEFAULT_SABLONLAR));
+if(!db.settings) db.settings = { aidatTutar:AIDAT_TUTAR, toplamBekle:TOPLAM_BEKLE };
+if(db.apartments.length < TOPLAM_DAIRE){
+  for(let i = db.apartments.length + 1; i <= TOPLAM_DAIRE; i++){ db.apartments.push({blok:BLOK_ADI, daire:i, isim:'', telefon:'', plaka:'', evsahibi:'', evTel:''}); }
+}
+db.apartments.forEach(function(a){ const k = a.blok + a.daire; if(!db.aidat[k]) db.aidat[k] = new Array(12).fill(''); });
+saveLocalDB(db);
+
+function fmtMoney(n){ const v = Number(n)||0; return v.toLocaleString('tr-TR',{minimumFractionDigits: v%1?2:0, maximumFractionDigits:2})+' ₺'; }
+function fmtDate(s){ if(!s) return '-'; const d=new Date(s); if(isNaN(d))return s; return String(d.getDate()).padStart(2,'0')+'.'+String(d.getMonth()+1).padStart(2,'0')+'.'+d.getFullYear(); }
+function aptKey(a){ return a.blok+a.daire; }
+function getApt(k){ return db.apartments.find(a=>aptKey(a)===k); }
+function tumDaireKodlari(){ return db.apartments.map(a=>aptKey(a)); }
+function bugun(){ return new Date().toISOString().slice(0,10); }
+function hucreTutar(v){ if(v === 'MUAF' || v === 'ÖDENMEDİ' || !v) return 0; if(typeof v === 'number') return v; const n = Number(v); if(!isNaN(n) && n > 0) return n; return 0; }
+function aidatOdenen(k){ return (db.aidat[k] || []).reduce((s,v)=>s+hucreTutar(v), 0); }
+function aidatKalanFazlaOncesi(k){ const row = db.aidat[k] || []; if(row.some(v=>v==='MUAF')) return 0; return Math.max(0, TOPLAM_BEKLE - aidatOdenen(k)); }
+function fazlaOdemesi(k){ return db.fazlaOdemeler[k] || 0; }
+function aidatKalan(k){ const h = aidatKalanFazlaOncesi(k); const f = fazlaOdemesi(k); return Math.max(0, h - f); }
+function aidatDurum(k){
+  const row = db.aidat[k] || [];
+  if(row.some(v=>v==='MUAF')) return 'muaf';
+  const fazla = db.fazlaOdemeler[k] || 0;
+  if(fazla > 0 && aidatKalanFazlaOncesi(k) === 0) return 'alacakli';
+  const kalan = aidatKalan(k);
+  if(kalan === 0 && aidatOdenen(k) > 0) return 'paid';
+  if(kalan === 0 && aidatOdenen(k) === 0) return 'empty';
+  if(aidatOdenen(k) > 0) return 'partial';
+  return 'unpaid';
+}
+function bankaBaki(){ return Number(db.bankaBakiyesi)||0; }
+function bankaBakiEkle(tutar){ db.bankaBakiyesi = (Number(db.bankaBakiyesi)||0) + (Number(tutar)||0); }
+function bankaBakiDus(tutar){ db.bankaBakiyesi = (Number(db.bankaBakiyesi)||0) - (Number(tutar)||0); }
+function toplamGider(){ return db.giderler.reduce((s,g)=>s+(Number(g.tutar)||0),0); }
+function toplamAidatBorc(){ let t=0; db.apartments.forEach(a=>t+=aidatKalan(aptKey(a))); return t; }
+function toplamAidatOdenen(){ let t=0; Object.keys(db.aidat).forEach(k=>t+=aidatOdenen(k)); return t; }
+function daireBankaHareketleri(k){ return (db.bankaHareketleri||[]).filter(function(h){ return h.daire === k; }); }
+function daireBankaToplam(k){ return daireBankaHareketleri(k).reduce(function(s,h){ return s + (Number(h.tutar)||0); }, 0); }
+function telToWhatsApp(tel){
+  if(!tel) return '';
+  const temiz = String(tel).replace(/\D/g,'');
+  if(!temiz) return '';
+  if(temiz.startsWith('90') && temiz.length >= 12) return temiz;
+  if(temiz.startsWith('0')) return '90'+temiz.slice(1);
+  if(temiz.length === 10) return '90'+temiz;
+  return temiz;
+}
+function telGecerliMi(tel){ if(!tel) return false; const t = String(tel).trim(); if(t === '' || t === 'BİLİNMİYOR' || t === 'BILINMIYOR') return false; return t.replace(/\D/g,'').length >= 10; }
+function telNormalize(tel){ if(!tel) return ''; return String(tel).replace(/\D/g,''); }
+function telefonEslestiMi(a1, a2){ const a = telNormalize(a1), b = telNormalize(a2); if(!a || !b) return false; if(a === b) return true; if(a.length >= 10 && b.length >= 10) return a.slice(-10) === b.slice(-10); return false; }
+function sablonDoldur(sablon, daireKodu){
+  const a = getApt(daireKodu);
+  const aidatBorc = aidatKalan(daireKodu);
+  const fazla = fazlaOdemesi(daireKodu);
+  let alacakSatir = '';
+  if(fazla > 0) alacakSatir = "\n✅ Alacaklı olduğunuz tutar: " + fmtMoney(fazla) + "\n";
+  return sablon.split('{ISIM}').join(a?a.isim||'Sakin':'Sakin').split('{DAIRE}').join(daireKodu).split('{AIDAT_ODENEN}').join(fmtMoney(aidatOdenen(daireKodu))).split('{AIDAT_BORC}').join(fmtMoney(aidatBorc)).split('{TOPLAM_BORC}').join(fmtMoney(aidatBorc)).split('{ALACAK}').join(fmtMoney(fazla)).split('{ALACAK_SATIR}').join(alacakSatir).split('{SITE_ADI}').join('Sirkinti Evleri');
+}
+function whatsappGonder(daireKodu, mesaj){
+  const a = getApt(daireKodu);
+  if(!a) return false;
+  if(!telGecerliMi(a.telefon)) return false;
+  const tel = telToWhatsApp(a.telefon);
+  const url = 'https://wa.me/'+tel+'?text='+encodeURIComponent(mesaj);
+  window.open(url, '_blank');
+  db.bildirimGecmisi.push({id: Date.now()+Math.random(), daire: daireKodu, tel: tel, tarih: new Date().toISOString(), tip: 'whatsapp'});
+  saveDB();
+  return true;
+}
+function sonBildirim(daireKodu){ const liste = db.bildirimGecmisi.filter(b=>b.daire===daireKodu); if(!liste.length) return null; return liste[liste.length-1]; }
+function sonBildirimKisa(daireKodu){
+  const s = sonBildirim(daireKodu);
+  if(!s) return '';
+  const d = new Date(s.tarih);
+  const gun = Math.floor((Date.now() - d.getTime())/(1000*60*60*24));
+  if(gun === 0) return 'bugün';
+  if(gun === 1) return 'dün';
+  return gun+' gün önce';
+}
+
+if(window.pdfjsLib){ window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js'; }
+
+async function pdfMetinCikar(file){
+  const arrayBuffer = await file.arrayBuffer();
+  const pdf = await window.pdfjsLib.getDocument({data: arrayBuffer}).promise;
+  let tumMetin = [];
+  for(let i = 1; i <= pdf.numPages; i++){
+    const page = await pdf.getPage(i);
+    const textContent = await page.getTextContent();
+    const items = textContent.items.map(function(it){ return { str: it.str, x: it.transform[4], y: it.transform[5] }; });
+    const satirlar = {};
+    items.forEach(function(it){ const yuvarlakY = Math.round(it.y / 3) * 3; if(!satirlar[yuvarlakY]) satirlar[yuvarlakY] = []; satirlar[yuvarlakY].push(it); });
+    const yKeys = Object.keys(satirlar).map(Number).sort(function(a,b){ return b - a; });
+    yKeys.forEach(function(y){ const kelimeler = satirlar[y].sort(function(a,b){ return a.x - b.x; }); const satir = kelimeler.map(function(w){ return w.str; }).join(' ').trim(); if(satir) tumMetin.push(satir); });
+  }
+  return tumMetin;
+}
+function isimMi(str){
+  if(!str) return false;
+  const temiz = str.trim();
+  if(temiz.length < 4 || temiz.length > 60) return false;
+  const kelimeler = temiz.split(/\s+/);
+  if(kelimeler.length < 2) return false;
+  if(/\d/.test(temiz)) return false;
+  const buyukSay = kelimeler.filter(function(k){ const ilk = k.charAt(0); return ilk === ilk.toUpperCase() && ilk !== ilk.toLowerCase(); }).length;
+  return buyukSay >= Math.ceil(kelimeler.length * 0.6);
+}
+function satirParse(satir){
+  const tarihMatch = satir.match(/(\d{2})[.\/](\d{2})[.\/](\d{4})/);
+  const tutarMatch = satir.match(/([\d.]+,\d{2})\s*(TL|₺)?/);
+  if(!tarihMatch || !tutarMatch) return null;
+  const tarih = tarihMatch[1]+'.'+tarihMatch[2]+'.'+tarihMatch[3];
+  const tutarStr = tutarMatch[1];
+  const tutar = parseFloat(tutarStr.replace(/\./g,'').replace(',','.'));
+  if(!tutar || tutar <= 0) return null;
+  const baslangic = tarihMatch.index + tarihMatch[0].length;
+  const bitis = tutarMatch.index;
+  let aciklamaTum = satir.substring(baslangic, bitis).trim();
+  aciklamaTum = aciklamaTum.replace(/^(Gelen Transfer|Giden Transfer|Ödeme|Para Çekme|Gelen Havale|Giden Havale|Havale|EFT|FAST|Gelen EFT)/i, '').trim().replace(/^[-\s,]+/, '').trim();
+  let isim = '', aciklama = aciklamaTum;
+  const virgulIndex = aciklamaTum.indexOf(',');
+  if(virgulIndex > 0){ isim = aciklamaTum.substring(0, virgulIndex).trim(); aciklama = aciklamaTum.substring(virgulIndex + 1).trim(); }
+  else {
+    const kelimeler = aciklamaTum.split(/\s+/);
+    let isimKelimeler = [];
+    for(let i = 0; i < kelimeler.length; i++){
+      const k = kelimeler[i];
+      const ilk = k.charAt(0);
+      if(ilk === ilk.toUpperCase() && ilk !== ilk.toLowerCase() && !/\d/.test(k)){ isimKelimeler.push(k); } else break;
+    }
+    if(isimKelimeler.length >= 2){ isim = isimKelimeler.join(' '); aciklama = kelimeler.slice(isimKelimeler.length).join(' '); }
+    else { isim = aciklamaTum; aciklama = ''; }
+  }
+  return { tarih: tarih, isim: isim, tutar: tutar, aciklama: aciklama };
+}
+function pdfSatirlariAyikla(metinSatirlari){ const sonuclar = []; metinSatirlari.forEach(function(satir){ const r = satirParse(satir); if(r) sonuclar.push(r); }); return sonuclar; }
+function pdfDaireleriAlgila(satirlar){
+  const daireler = {};
+  satirlar.forEach(function(s){
+    if(!isimMi(s.isim)) return;
+    const isim = s.isim.trim().toUpperCase();
+    if(!daireler[isim]) daireler[isim] = { isim: isim, toplam: 0, adet: 0, ornekTarihler: [], ornekTutar: 0 };
+    daireler[isim].toplam += s.tutar;
+    daireler[isim].adet += 1;
+    if(daireler[isim].ornekTarihler.length < 3) daireler[isim].ornekTarihler.push(s.tarih);
+    daireler[isim].ornekTutar = s.tutar;
+  });
+  return Object.values(daireler);
+}
+
+/* ===== EXCEL OKUMA ===== */
+async function excelMetinCikar(file){
+  const arrayBuffer = await file.arrayBuffer();
+  const wb = XLSX.read(arrayBuffer, {type:'array'});
+  const ilkSheet = wb.Sheets[wb.SheetNames[0]];
+  const rows = XLSX.utils.sheet_to_json(ilkSheet, {header:1, raw:false, defval:''});
+  return rows;
+}
+function excelDaireleriAlgila(rows){
+  const daireler = {};
+  if(!rows || !rows.length) return [];
+  // Başlık satırını atla (ilk satır)
+  let baslangicIdx = 0;
+  const ilk = rows[0] || [];
+  const ilkStr = ilk.map(function(c){ return String(c).toLowerCase(); }).join(' ');
+  if(ilkStr.indexOf('isim') > -1 || ilkStr.indexOf('ad') > -1 || ilkStr.indexOf('daire') > -1 || ilkStr.indexOf('blok') > -1){
+    baslangicIdx = 1;
+  }
+  for(let i = baslangicIdx; i < rows.length; i++){
+    const row = rows[i] || [];
+    if(!row.length) continue;
+    // Sütunları bul: isim, telefon, plaka, evsahibi vs.
+    let isim = '', telefon = '', plaka = '', daireNo = null;
+    for(let c = 0; c < row.length; c++){
+      const cell = String(row[c]||'').trim();
+      if(!cell) continue;
+      // Sayı mı? (daire no)
+      if(/^\d{1,3}$/.test(cell) && daireNo === null && Number(cell) >= 1 && Number(cell) <= 100){ daireNo = Number(cell); continue; }
+      // Telefon mu?
+      if(/^[0-9\s\-\(\)\+]{10,}$/.test(cell)){ telefon = cell; continue; }
+      // İsim mi? (büyük harfli, en az 2 kelime)
+      if(isimMi(cell) && !isim){ isim = cell.toUpperCase(); continue; }
+      // Plaka mı?
+      if(/^\d{2}\s?[A-Z]{1,3}\s?\d{2,4}$/i.test(cell)){ plaka = cell; continue; }
+    }
+    if(isim){
+      if(!daireler[isim]) daireler[isim] = { isim: isim, telefon: telefon, plaka: plaka, toplam: 0, adet: 0 };
+      else { if(telefon && !daireler[isim].telefon) daireler[isim].telefon = telefon; if(plaka && !daireler[isim].plaka) daireler[isim].plaka = plaka; }
+      daireler[isim].adet += 1;
+    }
+  }
+  return Object.values(daireler);
+}
+
+function daireYukleForm(){
+  if(!isAdmin) return;
+  const body = '<h2>📎 PDF / Excel Yükle - Daireleri Otomatik Ekle</h2>'
+    + '<div class="uyari">📄 Banka hesap hareketleri <b>PDF</b> veya <b>Excel</b> dosyası seç. Sistem isimleri ve tutarları otomatik çıkarır.</div>'
+    + '<div class="uyari teal">💡 <b>Desteklenen formatlar:</b><br>• PDF: Banka hesap ekstreleri<br>• Excel: İsim, telefon, plaka içeren listeler</div>'
+    + '<div class="fg"><label>Dosya Seç (PDF veya Excel)</label>'
+    + '<input type="file" class="fc" id="yukleFile" accept=".pdf,.xlsx,.xls,application/pdf,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel"></div>'
+    + '<button class="btn btn-primary btn-block" onclick="daireYukle()">📤 Dosyayı Oku ve Analiz Et</button>';
+  openModal(body);
+}
+async function daireYukle(){
+  if(!isAdmin) return;
+  const fileInput = document.getElementById('yukleFile');
+  if(!fileInput.files || !fileInput.files[0]){ alert('Lütfen bir dosya seçin.'); return; }
+  const file = fileInput.files[0];
+  const modBody = document.getElementById('modBody');
+  modBody.innerHTML = '<h2>⏳ Dosya İşleniyor...</h2><div class="muted">Analiz ediliyor, lütfen bekleyin.</div>';
+  try{
+    let daireler = [];
+    const isPDF = file.name.toLowerCase().endsWith('.pdf') || file.type === 'application/pdf';
+    if(isPDF){
+      const metinSatirlari = await pdfMetinCikar(file);
+      const odemeler = pdfSatirlariAyikla(metinSatirlari);
+      daireler = pdfDaireleriAlgila(odemeler);
+      window._yukleOdemeler = odemeler;
+    } else {
+      const rows = await excelMetinCikar(file);
+      daireler = excelDaireleriAlgila(rows);
+      window._yukleOdemeler = [];
+    }
+    if(!daireler.length){
+      modBody.innerHTML = '<h2>⚠️ Daire Bulunamadı</h2>'
+        + '<div class="uyari red">Bu dosyadan isim/daire bilgisi çıkarılamadı. Format desteklenmiyor olabilir.</div>'
+        + '<button class="btn btn-primary btn-block" style="margin-top:14px" onclick="closeModal()">Kapat</button>';
+      return;
+    }
+    window._yukleDaireler = daireler;
+    yukleOnizleme(daireler);
+  }catch(e){
+    console.error(e);
+    modBody.innerHTML = '<h2>❌ Hata</h2><div class="uyari red">Dosya okunamadı: '+(e.message||'Bilinmeyen hata')+'</div>'
+      + '<button class="btn btn-primary btn-block" style="margin-top:14px" onclick="closeModal()">Kapat</button>';
+  }
+}
+function yukleOnizleme(daireler){
+  let body = '<h2>📊 Analiz Sonucu</h2>'
+    + '<div class="pdf-ozet">'
+    + '<div class="stat-mini"><div class="lbl">Bulunan Kişi</div><div class="val">'+daireler.length+'</div></div>'
+    + '<div class="stat-mini"><div class="lbl">Boş Daire</div><div class="val">'+db.apartments.filter(a=>!a.isim).length+'</div></div>'
+    + '</div>'
+    + '<div class="uyari">Aşağıdaki isimler algılandı. Yanlış olanları silebilir veya düzeltebilirsin. <b>Onayla</b> dediğinde sırayla boş dairelere atanacak.</div>'
+    + '<div id="yukleListe" style="max-height:400px;overflow-y:auto;margin-bottom:10px">';
+  daireler.forEach(function(d, i){
+    body += '<div class="bh-row" style="grid-template-columns:1fr;padding:10px;margin-bottom:6px" id="yuk_'+i+'">'
+      + '<div style="display:flex;justify-content:space-between;align-items:center;gap:8px">'
+      + '<div style="flex:1;min-width:0">'
+      + '<input class="fc" id="yuk_isim_'+i+'" value="'+d.isim+'" style="font-size:.85rem;padding:8px;margin-bottom:4px">'
+      + '<input class="fc" id="yuk_tel_'+i+'" value="'+(d.telefon||'')+'" placeholder="Telefon (opsiyonel)" style="font-size:.8rem;padding:6px;margin-bottom:4px">'
+      + '<div class="muted" style="font-size:.7rem">'+(d.adet||0)+' kayıt · toplam: '+fmtMoney(d.toplam||0)+'</div>'
+      + '</div>'
+      + '<button class="btn btn-xs btn-danger" onclick="yukleSil('+i+')">🗑️</button>'
+      + '</div></div>';
+  });
+  body += '</div>'
+    + '<button class="btn btn-success btn-block" onclick="yukleOnayla()">✅ '+daireler.length+' Kişiyi Onayla ve Dairelere Ata</button>'
+    + '<button class="btn btn-block" style="margin-top:8px" onclick="closeModal()">İptal</button>';
+  document.getElementById('modBody').innerHTML = body;
+  window._yukleAktif = daireler.map(function(){ return true; });
+}
+function yukleSil(i){
+  window._yukleAktif[i] = false;
+  const el = document.getElementById('yuk_'+i);
+  if(el) el.style.display = 'none';
+}
+function yukleOnayla(){
+  if(!isAdmin) return;
+  const aktifler = window._yukleDaireler.filter(function(d, i){ return window._yukleAktif[i]; });
+  if(!aktifler.length){ alert('Hiç kişi seçili değil.'); return; }
+  let eklenen = 0, atlanan = 0;
+  aktifler.forEach(function(d){
+    const idx = window._yukleDaireler.indexOf(d);
+    const isimEl = document.getElementById('yuk_isim_'+idx);
+    const telEl = document.getElementById('yuk_tel_'+idx);
+    const isim = isimEl ? isimEl.value.trim() : d.isim;
+    const tel = telEl ? telEl.value.trim() : (d.telefon||'');
+    if(!isim) return;
+    const bosDaire = db.apartments.find(function(a){ return !a.isim || a.isim === '' || a.isim === 'BİLİNMİYOR' || a.isim === 'BILINMIYOR'; });
+    if(!bosDaire){ atlanan++; return; }
+    bosDaire.isim = isim;
+    if(tel) bosDaire.telefon = tel;
+    if(d.plaka) bosDaire.plaka = d.plaka;
+    eklenen++;
+  });
+  // Banka hareketlerini de ekle (PDF ise)
+  let bhEklenen = 0;
+  (window._yukleOdemeler||[]).forEach(function(o){
+    if(!o.isim || o.tutar <= 0) return;
+    const hedefDaire = db.apartments.find(function(a){ return a.isim && a.isim.trim().toUpperCase() === o.isim.trim().toUpperCase(); });
+    const daireKodu = hedefDaire ? aptKey(hedefDaire) : null;
+    db.bankaHareketleri.push({ id: 'bh_'+Date.now()+'_'+Math.random().toString(36).slice(2,6), daire: daireKodu || 'GENEL', tarih: o.tarih, isim: o.isim, tutar: o.tutar, aciklama: o.aciklama || 'Dosyadan aktarıldı' });
+    bhEklenen++;
+  });
+  saveDB();
+  closeModal();
+  render();
+  alert('✓ '+eklenen+' daire eklendi.'+(bhEklenen?'\n✓ '+bhEklenen+' banka hareketi kaydedildi.':'')+(atlanan?'\n\n⚠️ '+atlanan+' kişi için boş daire kalmadı.':''));
+}
+  /* ============ FIREBASE ============ */
+let _fbReady = false;
+let _fbSaveTimer = null;
+let _fs = null, _doc = null, _setDoc = null, _getDoc = null, _onSnapshot = null;
+let _auth = null, _signInWithEmailAndPassword = null, _signOut = null, _onAuthStateChanged = null;
+
+function setSyncStatus(status, msg){
+  const bar = document.getElementById('syncBar');
+  const st = document.getElementById('syncStatus');
+  if(!bar || !st) return;
+  bar.className = '';
+  if(status === 'saving'){ bar.classList.add('saving'); st.textContent = msg||'💾 Kaydediliyor...'; st.classList.add('show'); }
+  else if(status === 'saved'){ bar.classList.add('saved'); st.textContent = '✓ Buluta kaydedildi'; st.classList.add('show'); setTimeout(function(){ st.classList.remove('show'); }, 1500); setTimeout(function(){ bar.className=''; }, 1500); }
+  else if(status === 'error'){ bar.classList.add('error'); st.textContent = '⚠️ '+(msg||'Bağlantı hatası'); st.classList.add('show'); }
+}
+function saveToCloud(){
+  if(!_fbReady || !_setDoc || !isAdmin) return;
+  setSyncStatus('saving');
+  clearTimeout(_fbSaveTimer);
+  _fbSaveTimer = setTimeout(async function(){
+    try{ await _setDoc(_doc(_fs, FIRESTORE_COLLECTION, FIRESTORE_DOC), JSON.parse(JSON.stringify(db))); setSyncStatus('saved'); }
+    catch(e){ console.error('Firebase save error:', e); setSyncStatus('error', e.message); }
+  }, 600);
+}
+function saveDB(){ window.db = db; saveLocalDB(db); saveToCloud(); }
+async function loadFromCloud(){
+  if(!_getDoc) return false;
+  try{
+    const ref = _doc(_fs, FIRESTORE_COLLECTION, FIRESTORE_DOC);
+    const snap = await _getDoc(ref);
+    if(snap.exists()){
+      const cloudData = snap.data();
+      if(cloudData && cloudData.apartments && cloudData.apartments.length){
+        db = cloudData;
+        if(!db.fazlaOdemeler) db.fazlaOdemeler = {};
+        if(!db.islemler) db.islemler = [];
+        if(!db.bankaHareketleri) db.bankaHareketleri = [];
+        if(db.bankaBakiyesi === undefined) db.bankaBakiyesi = 0;
+        if(!db.sablonlar) db.sablonlar = JSON.parse(JSON.stringify(DEFAULT_SABLONLAR));
+        if(!db.bildirimGecmisi) db.bildirimGecmisi = [];
+        if(db.apartments.length < TOPLAM_DAIRE){ for(let i = db.apartments.length + 1; i <= TOPLAM_DAIRE; i++){ db.apartments.push({blok:BLOK_ADI, daire:i, isim:'', telefon:'', plaka:'', evsahibi:'', evTel:''}); } }
+        db.apartments.forEach(function(a){ const k = a.blok + a.daire; if(!db.aidat[k]) db.aidat[k] = new Array(12).fill(''); });
+        saveLocalDB(db); window.db = db;
+      } else await _setDoc(ref, JSON.parse(JSON.stringify(db)));
+    } else await _setDoc(ref, JSON.parse(JSON.stringify(db)));
+    return true;
+  }catch(e){ console.error('Firebase load error:', e); return false; }
+}
+function startRealtimeSync(){
+  if(!_onSnapshot) return;
+  try{
+    const ref = _doc(_fs, FIRESTORE_COLLECTION, FIRESTORE_DOC);
+    let first = true;
+    _onSnapshot(ref, function(snap){
+      if(first){ first = false; return; }
+      if(snap.exists()){
+        const cloudData = snap.data();
+        if(JSON.stringify(db) !== JSON.stringify(cloudData)){
+          db = cloudData;
+          if(!db.islemler) db.islemler = [];
+          if(!db.bankaHareketleri) db.bankaHareketleri = [];
+          saveLocalDB(db); window.db = db; render();
+        }
+      }
+    });
+  }catch(e){ console.warn('Realtime sync error:', e); }
+}
+async function initFirebase(){
+  try{
+    console.log('🔥 Firebase başlatılıyor...');
+    const appMod = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js');
+    const fsMod = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js');
+    const authMod = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js');
+    const firebaseConfig = {
+      apiKey: "AIzaSyB0ulDFxe2z9Lp0hFpVbBq7CWRBwXgHyx0",
+      authDomain: "sirkintievleriablok-44064.firebaseapp.com",
+      projectId: "sirkintievleriablok-44064",
+      storageBucket: "sirkintievleriablok-44064.firebasestorage.app",
+      messagingSenderId: "355933699373",
+      appId: "1:355933699373:web:5b1b09b2f9e4b482dd27a4"
+    };
+    const fbApp = appMod.initializeApp(firebaseConfig);
+    _fs = fsMod.getFirestore(fbApp);
+    _doc = fsMod.doc; _setDoc = fsMod.setDoc; _getDoc = fsMod.getDoc; _onSnapshot = fsMod.onSnapshot;
+    _auth = authMod.getAuth(fbApp);
+    _signInWithEmailAndPassword = authMod.signInWithEmailAndPassword;
+    _signOut = authMod.signOut;
+    _onAuthStateChanged = authMod.onAuthStateChanged;
+    _fbReady = true;
+    console.log('✓ Firebase hazır');
+    const sakinDaire = sessionStorage.getItem('sakin_daire');
+    if(sakinDaire && getApt(sakinDaire)) sakinDaireKodu = sakinDaire;
+    _onAuthStateChanged(_auth, async function(user){
+      if(user && user.email === YETKILI_EMAIL){
+        isAdmin = true; sakinDaireKodu = null; sessionStorage.removeItem('sakin_daire');
+        await loadFromCloud(); render(); startRealtimeSync();
+      } else if(user && user.email !== YETKILI_EMAIL){
+        await _signOut(_auth); isAdmin = false; render();
+      } else { isAdmin = false; await loadFromCloud(); render(); }
+    });
+  }catch(e){
+    console.error('Firebase init error:', e);
+    setSyncStatus('error', 'Bulut bağlantısı kurulamadı - yerel modda çalışıyor');
+    isAdmin = false; render();
+  }
+}
+async function adminLogin(email, pass){
+  try{ await _signInWithEmailAndPassword(_auth, email, pass); return { ok: true }; }
+  catch(e){
+    let msg = 'Giriş başarısız.';
+    if(e.code === 'auth/wrong-password') msg = 'Şifre hatalı.';
+    else if(e.code === 'auth/user-not-found') msg = 'Bu e-posta ile kayıtlı kullanıcı yok.';
+    else if(e.code === 'auth/invalid-email') msg = 'Geçersiz e-posta adresi.';
+    else if(e.code === 'auth/too-many-requests') msg = 'Çok fazla deneme. Lütfen bekleyin.';
+    else if(e.code === 'auth/invalid-credential') msg = 'E-posta veya şifre hatalı.';
+    else if(e.code === 'auth/unauthorized-domain') msg = 'Domain yetkili değil. Firebase ayarlarını kontrol edin.';
+    else if(!_auth) msg = 'Bulut bağlantısı yok. Sayfayı yenileyin.';
+    return { ok: false, msg: msg };
+  }
+}
+async function adminCikis(){
+  try{ await _signOut(_auth); isAdmin = false; sakinDaireKodu = null; sessionStorage.removeItem('sakin_daire'); currentPage = 'home'; renderNav(); render(); }catch(e){ console.error(e); }
+}
+function sakinCikis(){ sakinDaireKodu = null; sessionStorage.removeItem('sakin_daire'); currentPage = 'home'; renderNav(); render(); }
+
+/* ============ NAVİGASYON ============ */
+let currentPage = 'home';
+let isAdmin = false;
+let sakinDaireKodu = null;
+
+function renderNav(){
+  const nav = document.getElementById('bnav');
+  let items = '';
+  if(isAdmin){
+    items = '<button data-page="home" class="'+(currentPage==='home'?'active':'')+'"><span class="ic">🏠</span>Ana Sayfa</button>'
+      + '<button data-page="apartments" class="'+(currentPage==='apartments'?'active':'')+'"><span class="ic">🏢</span>Daireler</button>'
+      + '<button data-page="aidat" class="'+(currentPage==='aidat'?'active':'')+'"><span class="ic">💰</span>Aidat</button>'
+      + '<button data-page="gider" class="'+(currentPage==='gider'?'active':'')+'"><span class="ic">🧾</span>Giderler</button>'
+      + '<button data-page="more" class="'+(currentPage==='more'?'active':'')+'"><span class="ic">⚙️</span>Daha</button>';
+  } else if(sakinDaireKodu){
+    items = '<button data-page="sakin-home" class="'+(currentPage==='sakin-home'?'active':'')+'"><span class="ic">🏠</span>Dairem</button>';
+  } else {
+    items = '<button data-page="home" class="active"><span class="ic">🏠</span>Ana Sayfa</button>';
+  }
+  nav.innerHTML = items;
+  nav.querySelectorAll('button').forEach(function(b){ b.addEventListener('click', function(){ navTo(this.dataset.page); }); });
+}
+function navTo(page){
+  if(page === 'login'){ currentPage = 'login'; renderNav(); render(); window.scrollTo(0,0); return; }
+  if(page === 'sakin-login'){ currentPage = 'sakin-login'; renderNav(); render(); window.scrollTo(0,0); return; }
+  if(page === 'sakin-home'){ if(!sakinDaireKodu){ return; } currentPage = 'sakin-home'; renderNav(); render(); window.scrollTo(0,0); return; }
+  if(!isAdmin && page!=='home'){ return; }
+  currentPage = page; renderNav(); render(); window.scrollTo(0,0);
+}
+function render(){
+  const app = document.getElementById('app');
+  try{
+    if(currentPage === 'login'){ app.innerHTML = viewLogin(); return; }
+    if(currentPage === 'sakin-login'){ app.innerHTML = viewSakinLogin(); return; }
+    if(currentPage === 'sakin-home'){ app.innerHTML = viewSakinHome(); return; }
+    switch(currentPage){
+      case 'home': app.innerHTML = viewHome(); break;
+      case 'apartments': app.innerHTML = viewApartments(); break;
+      case 'aidat': app.innerHTML = viewAidat(); break;
+      case 'gider': app.innerHTML = viewGider(); break;
+      case 'more': app.innerHTML = viewMore(); break;
+      case 'islemler': app.innerHTML = viewIslemler(); break;
+      case 'duyurular': app.innerHTML = viewDuyurular(); break;
+      case 'bildirimler': app.innerHTML = viewBildirimler(); break;
+      case 'sablonlar': app.innerHTML = viewSablonlar(); break;
+      default: app.innerHTML = viewHome();
+    }
+  }catch(e){
+    console.error('Render hatası:', e);
+    app.innerHTML = '<div style="padding:30px;text-align:center"><h2>⚠️ Görüntüleme Hatası</h2><p style="color:#666;margin-top:10px">'+e.message+'</p><button onclick="location.reload()" style="margin-top:20px;padding:10px 20px;border-radius:20px;border:none;background:#2a5c9e;color:#fff;font-weight:600">Sayfayı Yenile</button></div>';
+  }
+}
+function header(title, sub, rightBtn){
+  return '<div class="header"><div class="header-row"><div><h1>'+title+'</h1><div class="sub">'+(sub||'')+'</div></div>'+(rightBtn||'')+'</div></div>';
+}
+function viewLogin(){
+  let html = header('SİRKİNTİ EVLERİ','Yönetici Girişi');
+  html += '<div class="app"><div class="login-wrap">'
+    + '<h2>🔐 Yönetici Girişi</h2>'
+    + '<div class="sub">Sadece yetkili kişi giriş yapabilir</div>'
+    + '<div id="loginErr"></div>'
+    + '<div class="fg"><label>E-posta</label><input type="email" class="fc" id="loginEmail" placeholder="yonetici@sikintievleri.com" autocomplete="username"></div>'
+    + '<div class="fg"><label>Şifre</label><input type="password" class="fc" id="loginPass" placeholder="••••••••" autocomplete="current-password"></div>'
+    + '<button class="btn btn-primary btn-block" id="loginBtn" onclick="loginSubmit()">Giriş Yap</button>'
+    + '<button class="btn btn-block" style="margin-top:8px" onclick="navTo(\'home\')">← Ana Sayfa</button>'
+    + '</div></div>';
+  return html;
+}
+async function loginSubmit(){
+  const email = document.getElementById('loginEmail').value.trim();
+  const pass = document.getElementById('loginPass').value;
+  const errEl = document.getElementById('loginErr');
+  const btn = document.getElementById('loginBtn');
+  if(!email || !pass){ errEl.innerHTML = '<div class="login-err">E-posta ve şifre gerekli.</div>'; return; }
+  if(email !== YETKILI_EMAIL){ errEl.innerHTML = '<div class="login-err">Bu e-posta yetkili değil.</div>'; return; }
+  if(!_auth){ errEl.innerHTML = '<div class="login-err">Bulut bağlantısı yok. Sayfayı yenileyin.</div>'; return; }
+  btn.textContent = 'Giriş yapılıyor...'; btn.disabled = true; errEl.innerHTML = '';
+  const res = await adminLogin(email, pass);
+  btn.textContent = 'Giriş Yap'; btn.disabled = false;
+  if(!res.ok){ errEl.innerHTML = '<div class="login-err">'+res.msg+'</div>'; }
+}
+function viewSakinLogin(){
+  let html = header('SİRKİNTİ EVLERİ','Site Sakini Girişi');
+  html += '<div class="app"><div class="login-wrap">'
+    + '<h2>🏠 Site Sakini Girişi</h2>'
+    + '<div class="sub">Dairenizi seçin ve kayıtlı telefon numaranızı girin</div>'
+    + '<div id="sakinErr"></div>'
+    + '<div class="fg"><label>Daire Seçin</label><select class="fc" id="sakinDaire">';
+  db.apartments.forEach(function(a){ html += '<option value="'+aptKey(a)+'">'+aptKey(a)+' - '+(a.isim||'(boş)')+'</option>'; });
+  html += '</select></div>'
+    + '<div class="fg"><label>Telefon Numarası</label><input type="tel" class="fc" id="sakinTel" placeholder="05xx xxx xx xx" autocomplete="tel"></div>'
+    + '<button class="btn btn-primary btn-block" onclick="sakinLoginSubmit()">Giriş Yap</button>'
+    + '<button class="btn btn-block" style="margin-top:8px" onclick="navTo(\'home\')">← Ana Sayfa</button>'
+    + '</div></div>';
+  return html;
+}
+function sakinLoginSubmit(){
+  const daire = document.getElementById('sakinDaire').value;
+  const tel = document.getElementById('sakinTel').value.trim();
+  const errEl = document.getElementById('sakinErr');
+  errEl.innerHTML = '';
+  if(!daire || !tel){ errEl.innerHTML = '<div class="login-err">Daire ve telefon numarası gerekli.</div>'; return; }
+  const a = getApt(daire);
+  if(!a){ errEl.innerHTML = '<div class="login-err">Bu daire bulunamadı.</div>'; return; }
+  if(!telGecerliMi(a.telefon)){ errEl.innerHTML = '<div class="login-err">Bu dairenin sistemde kayıtlı telefon numarası yok.</div>'; return; }
+  if(!telefonEslestiMi(a.telefon, tel)){ errEl.innerHTML = '<div class="login-err">Girdiğiniz telefon numarası eşleşmiyor.</div>'; return; }
+  sakinDaireKodu = daire; sessionStorage.setItem('sakin_daire', daire); currentPage = 'sakin-home'; renderNav(); render(); window.scrollTo(0,0);
+}
+function viewSakinHome(){
+  const k = sakinDaireKodu;
+  const a = getApt(k);
+  if(!a) return viewHome();
+  const aidatRow = db.aidat[k] || [];
+  const fazla = fazlaOdemesi(k);
+  const bh = daireBankaHareketleri(k);
+  const bhToplam = daireBankaToplam(k);
+  const duyurular = db.duyurular.slice().sort(function(x,y){ return new Date(y.tarih)-new Date(x.tarih); }).slice(0,5);
+  let rightBtn = '<button class="btn-ghost" onclick="sakinCikis()">🚪 Çıkış</button>';
+  let html = header('Dairem: '+k, a.isim||'Sakin', rightBtn);
+  html += '<div class="app"><div class="sakin-uyari">👤 <b>Hoş geldiniz, '+(a.isim||'Sakin')+'</b></div>';
+  html += '<div class="stats"><div class="stat green"><div class="lbl">💰 Ödenen Aidat</div><div class="val">'+fmtMoney(aidatOdenen(k))+'</div></div>'
+    + '<div class="stat '+(aidatKalan(k)>0?'red':'green')+'"><div class="lbl">📌 Kalan Borç</div><div class="val">'+fmtMoney(aidatKalan(k))+'</div></div></div>';
+  if(fazla > 0) html += '<div class="uyari teal">💚 <b>Fazla ödemeniz var: '+fmtMoney(fazla)+'</b></div>';
+  html += '<div class="card"><div class="card-title">📅 Aidat Durumum</div><div class="tbl-wrap"><table style="min-width:auto"><thead><tr><th class="left">Ay</th><th>Durum</th></tr></thead><tbody>';
+  AY_ADLARI.forEach(function(ay, i){
+    const v = aidatRow[i]||'';
+    let cls='', lbl;
+    if(v==='MUAF'){cls='cell-muaf';lbl='⚪ Muaf';}
+    else if(v==='ÖDENMEDİ'){cls='cell-unpaid';lbl='🔴 Ödenmedi';}
+    else if(v && String(v).indexOf('ESKİ')>-1){cls='cell-old';lbl='📜 '+v;}
+    else if(typeof v==='number' && v>0){cls='cell-paid';lbl='🟢 Ödendi ('+fmtMoney(v)+')';}
+    else if(v && !isNaN(Number(v)) && Number(v)>0){cls='cell-paid';lbl='🟢 Ödendi ('+fmtMoney(Number(v))+')';}
+    else {cls='cell-empty';lbl='—';}
+    html += '<tr><td class="left"><b>'+ay+'</b></td><td class="'+cls+'">'+lbl+'</td></tr>';
+  });
+  html += '</tbody></table></div></div>';
+  html += '<div class="card"><div class="card-title">🏦 Banka Hareketlerim <span class="badge-cnt">'+bh.length+'</span></div>';
+  if(bh.length){
+    bh.forEach(function(h){ html += '<div class="bh-row"><div class="bh-date">'+h.tarih+'</div><div class="bh-name">'+h.isim+'</div><div class="bh-amt">+'+fmtMoney(h.tutar)+'</div></div>'; });
+    html += '<div class="divider"></div><div class="li"><div class="li-t"><b>Toplam</b></div><div class="li-v green"><b>'+fmtMoney(bhToplam)+'</b></div></div>';
+  } else html += '<div class="empty">Henüz kayıt yok.</div>';
+  html += '</div>';
+  html += '<div class="card"><div class="card-title">📢 Duyurular</div>';
+  if(duyurular.length){
+    duyurular.forEach(function(d){ html += '<div class="li"><div style="flex:1"><div class="li-t">'+(d.onemli?'🔴 ':'')+d.baslik+'</div><div class="li-d">'+fmtDate(d.tarih)+'</div><div class="li-d" style="margin-top:4px;color:var(--text)">'+d.icerik+'</div></div></div>'; });
+  } else html += '<div class="empty">Duyuru yok.</div>';
+  html += '</div></div>';
+  return html;
+}
+function viewHome(){
+  const bakiye = bankaBaki();
+  const gider = toplamGider();
+  const duyurular = db.duyurular.slice().sort((a,b)=>new Date(b.tarih)-new Date(a.tarih)).slice(0,3);
+  let rightBtn = '';
+  if(isAdmin) rightBtn = '<button class="btn-ghost" onclick="adminCikis()">🚪 Çıkış</button>';
+  let html = header('SİRKİNTİ EVLERİ','Site Yönetim Sistemi · '+TOPLAM_DAIRE+' Daire', rightBtn);
+  html += '<div class="app">';
+  html += '<div class="big-stat balance"><div class="lbl">💰 Toplam Banka Bakiyesi</div><div class="val">'+fmtMoney(bakiye)+'</div></div>';
+  html += '<div class="big-stat expense"><div class="lbl">📤 Toplam Gider</div><div class="val">'+fmtMoney(gider)+'</div></div>';
+  if(isAdmin){
+    html += '<div class="card" style="background:linear-gradient(135deg,#e3f2fd,#bbdefb);border:2px solid #90caf9">'
+      + '<div class="card-title" style="color:#0d47a1">📎 Daire Ekle - Otomatik</div>'
+      + '<div style="font-size:.85rem;color:#0d47a1;margin-bottom:12px">PDF veya Excel dosyası yükle, sistem daireleri otomatik algılayıp eklesin.</div>'
+      + '<button class="btn btn-primary btn-block" style="background:#0d47a1;padding:15px;font-size:.95rem;font-weight:700" onclick="daireYukleForm()">📤 PDF / EXCEL YÜKLE</button>'
+      + '</div>';
+  }
+  html += '<div class="card"><div class="card-title">📢 Duyurular <span class="badge-cnt">'+db.duyurular.length+'</span></div>';
+  if(duyurular.length){
+    duyurular.forEach(function(d){ html += '<div class="li"><div style="flex:1"><div class="li-t">'+(d.onemli?'🔴 ':'')+d.baslik+'</div><div class="li-d">'+fmtDate(d.tarih)+'</div><div class="li-d" style="margin-top:4px;color:var(--text)">'+d.icerik.slice(0,90)+(d.icerik.length>90?'...':'')+'</div></div></div>'; });
+  } else html += '<div class="empty">Henüz duyuru yok.</div>';
+  html += '</div>';
+  if(isAdmin){
+    html += '<div class="card"><div class="card-title">⚙️ Yönetici Kısayolları</div><div class="more-grid">'
+      + '<div class="more-item" onclick="navTo(\'bildirimler\')"><span class="ic">📱</span>WhatsApp Bildirim</div>'
+      + '<div class="more-item" onclick="navTo(\'islemler\')"><span class="ic">📋</span>Yapılan İşlemler</div>'
+      + '<div class="more-item" onclick="navTo(\'duyurular\')"><span class="ic">📢</span>Duyurular</div>'
+      + '<div class="more-item" onclick="navTo(\'sablonlar\')"><span class="ic">✏️</span>Mesaj Şablonları</div>'
+      + '<div class="more-item" onclick="excelCikar()"><span class="ic">📥</span>Excel\'e Çıkar</div>'
+      + '<div class="more-item" onclick="bankaBakiyeDuzenle()"><span class="ic">💵</span>Banka Bakiyesi Ayarla</div>'
+      + '<div class="more-item" onclick="fazlaTemizle()"><span class="ic">🧹</span>Fazla Ödemeleri Temizle</div>'
+      + '</div></div>';
+  } else if(sakinDaireKodu){
+    html += '<div class="card"><button class="btn btn-primary btn-block" onclick="navTo(\'sakin-home\')">🏠 Daireme Git</button></div>';
+  } else {
+    html += '<div class="card"><div class="card-title">🔐 Giriş Yapın</div>'
+      + '<button class="btn btn-primary btn-block" style="margin-bottom:8px" onclick="navTo(\'sakin-login\')">🏠 Site Sakini Girişi</button>'
+      + '<button class="btn btn-block" onclick="navTo(\'login\')">⚙️ Yönetici Girişi</button></div>';
+  }
+  html += '</div>';
+  return html;
+}
+function bankaBakiyeDuzenle(){
+  if(!isAdmin) return;
+  const body = '<h2>💵 Banka Bakiyesi Ayarla</h2>'
+    + '<div class="uyari">⚠️ Bankadaki <b>gerçek tutarı</b> gir.</div>'
+    + '<div class="li"><div class="li-t">Şu anki bakiye</div><div class="li-v">'+fmtMoney(bankaBaki())+'</div></div>'
+    + '<div class="fg" style="margin-top:12px"><label>Yeni tutar (₺)</label><input type="number" step="0.01" class="fc" id="bankaVal" value="'+bankaBaki()+'"></div>'
+    + '<button class="btn btn-primary btn-block" onclick="bankaBakiyeKaydet()">Kaydet</button>';
+  openModal(body);
+}
+function bankaBakiyeKaydet(){
+  if(!isAdmin) return;
+  const v = Number(document.getElementById('bankaVal').value);
+  if(isNaN(v)){ alert('Geçerli bir tutar girin'); return; }
+  db.bankaBakiyesi = v; saveDB(); closeModal(); render();
+  alert('Banka bakiyesi: '+fmtMoney(v));
+}
+function fazlaTemizle(){
+  if(!isAdmin) return;
+  const adet = Object.keys(db.fazlaOdemeler||{}).length;
+  if(adet === 0){ alert('Zaten kayıt yok.'); return; }
+  if(!confirm('Tüm fazla ödeme kayıtları silinecek. Emin misiniz?')) return;
+  db.fazlaOdemeler = {}; saveDB(); render();
+  alert('Temizlendi.');
+}
+function viewApartments(){
+  if(!isAdmin) return viewHome();
+  let html = header('Daireler', BLOK_ADI+' Blok · '+TOPLAM_DAIRE+' Daire');
+  html += '<div class="app">';
+  html += '<div class="card"><button class="btn btn-teal btn-block" style="margin-bottom:12px" onclick="daireYukleForm()">📎 PDF / Excel Yükle - Daire Ekle</button>'
+    + '<div class="apt-grid">';
+  db.apartments.forEach(function(a){
+    const k = aptKey(a);
+    const durum = aidatDurum(k);
+    const isimKisa = (a.isim||'').split(' ')[0]||'';
+    html += '<div class="apt-btn '+durum+'" onclick="aptDetay(\''+k+'\')">'+a.daire+'<div style="font-size:.55rem;font-weight:500;opacity:.7;overflow:hidden;text-overflow:ellipsis">'+isimKisa+'</div></div>';
+  });
+  html += '</div></div></div>';
+  return html;
+}
+function aptDetay(k){
+  if(!isAdmin) return;
+  const a = getApt(k);
+  if(!a) return;
+  const aidatRow = db.aidat[k] || [];
+  const fazla = fazlaOdemesi(k);
+  const bh = daireBankaHareketleri(k);
+  const bhToplam = daireBankaToplam(k);
+  let body = '<h2>'+k+' - Daire Detayı</h2>';
+  if(fazla > 0) body += '<div class="uyari teal">💚 Fazla ödeme: '+fmtMoney(fazla)+'</div>';
+  body += '<div class="sec-title">👤 Sakin Bilgileri</div>'
+    + '<div class="fg"><label>Oturan İsim</label><input class="fc" id="f_isim" value="'+(a.isim||'')+'"></div>'
+    + '<div class="fg"><label>Telefon (WhatsApp)</label><input class="fc" id="f_telefon" value="'+(a.telefon||'')+'"></div>'
+    + '<div class="fg"><label>Araç Plaka</label><input class="fc" id="f_plaka" value="'+(a.plaka||'')+'"></div>'
+    + '<div class="fg"><label>Ev Sahibi İsim</label><input class="fc" id="f_evsahibi" value="'+(a.evsahibi||'')+'"></div>'
+    + '<div class="fg"><label>Ev Sahibi Telefon</label><input class="fc" id="f_evtel" value="'+(a.evTel||'')+'"></div>';
+  body += '<button class="btn btn-success btn-block" onclick="kaydetVeWhatsapp(\''+k+'\')">💾 Kaydet ve WhatsApp Gönder</button>'
+    + '<button class="btn btn-block" style="margin-top:6px" onclick="kaydetApt(\''+k+'\')">💾 Sadece Kaydet</button>';
+  body += '<div class="divider"></div><div class="sec-title">💰 Aidat Özeti</div>'
+    + '<div class="li"><div class="li-t">Ödenen</div><div class="li-v green">'+fmtMoney(aidatOdenen(k))+'</div></div>'
+    + '<div class="li"><div class="li-t">Kalan</div><div class="li-v red">'+fmtMoney(aidatKalan(k))+'</div></div>';
+  body += '<div class="divider"></div><div class="sec-title">📅 Aylık Aidat Düzenle</div>'
+    + '<div class="tbl-wrap" style="margin-top:6px"><table style="min-width:auto"><thead><tr><th class="left">Ay</th><th>Durum</th><th>İşlem</th></tr></thead><tbody>';
+  AY_ADLARI.forEach(function(ay, i){
+    const v = aidatRow[i]||'';
+    let cls='', lbl;
+    if(v==='MUAF'){cls='cell-muaf';lbl='Muaf';}
+    else if(v==='ÖDENMEDİ'){cls='cell-unpaid';lbl='Ödenmedi';}
+    else if(v && String(v).indexOf('ESKİ')>-1){cls='cell-old';lbl=v;}
+    else if(typeof v==='number' && v>0){cls='cell-paid';lbl=fmtMoney(v);}
+    else if(v && !isNaN(Number(v)) && Number(v)>0){cls='cell-paid';lbl=fmtMoney(Number(v));}
+    else {cls='cell-empty';lbl='—';}
+    body += '<tr><td class="left">'+ay+'</td><td class="'+cls+'">'+lbl+'</td><td><button class="btn btn-sm btn-primary" onclick="editAidat(\''+k+'\','+i+')">Düzenle</button></td></tr>';
+  });
+  body += '</tbody></table></div>';
+  openModal(body);
+}
+function kaydetApt(k){
+  if(!isAdmin) return;
+  const a = getApt(k); if(!a) return;
+  const t = document.getElementById('f_telefon').value.trim();
+  a.isim = document.getElementById('f_isim').value.trim();
+  a.telefon = t;
+  a.plaka = document.getElementById('f_plaka').value.trim();
+  a.evsahibi = document.getElementById('f_evsahibi').value.trim();
+  a.evTel = document.getElementById('f_evtel').value.trim();
+  saveDB(); closeModal(); render();
+  alert('Kaydedildi.');
+}
+function kaydetVeWhatsapp(k){
+  if(!isAdmin) return;
+  const a = getApt(k); if(!a) return;
+  const t = document.getElementById('f_telefon').value.trim();
+  if(!telGecerliMi(t)){ alert('Geçerli telefon gerekli'); return; }
+  a.isim = document.getElementById('f_isim').value.trim();
+  a.telefon = t;
+  a.plaka = document.getElementById('f_plaka').value.trim();
+  a.evsahibi = document.getElementById('f_evsahibi').value.trim();
+  a.evTel = document.getElementById('f_evtel').value.trim();
+  saveDB(); closeModal(); render();
+  setTimeout(function(){ bildirimGonder(k); }, 300);
+}
+function editAidat(k, ayIndex){
+  if(!isAdmin) return;
+  const cur = (db.aidat[k]||[])[ayIndex];
+  const curStr = (cur===undefined||cur===null)?'':String(cur);
+  let body = '<h2>'+k+' - '+AY_ADLARI[ayIndex]+'</h2>'
+    + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px">'
+    + '<button class="btn btn-success" onclick="aidatSec(\'odendi\')" style="grid-column:span 2">🟢 Ödendi ('+AIDAT_TUTAR+' ₺)</button>'
+    + '<button class="btn" onclick="aidatSec(\'tutar\')" style="grid-column:span 2">💵 Manuel Tutar</button>'
+    + '<button class="btn btn-danger" onclick="aidatSec(\'odenmedi\')">❌ Ödenmedi</button>'
+    + '<button class="btn" onclick="aidatSec(\'muaf\')">⚪ Muaf</button>'
+    + '<button class="btn" onclick="aidatSec(\'bos\')">🗑️ Boş</button>'
+    + '</div>'
+    + '<div id="tutarWrap" class="fg" style="display:none"><label>Tutar (₺)</label><input type="number" step="0.01" class="fc" id="aidatTutarInput" value="'+(curStr||'')+'"></div>'
+    + '<button class="btn btn-primary btn-block" onclick="saveAidat(\''+k+'\','+ayIndex+')">Kaydet</button>';
+  openModal(body);
+  window._aidatSec = 'bos';
+}
+function aidatSec(tip){
+  window._aidatSec = tip;
+  const tw = document.getElementById('tutarWrap');
+  if(tw) tw.style.display = tip==='tutar'?'':'none';
+  if(tip === 'odendi'){ const inp = document.getElementById('aidatTutarInput'); if(inp) inp.value = AIDAT_TUTAR; }
+}
+function saveAidat(k, ayIndex){
+  if(!isAdmin) return;
+  if(!db.aidat[k]) db.aidat[k] = new Array(12).fill('');
+  const tip = window._aidatSec;
+  const eskiTutar = hucreTutar(db.aidat[k][ayIndex]);
+  let val = '', yeniTutar = 0;
+  if(tip === 'odendi'){ yeniTutar = AIDAT_TUTAR; val = AIDAT_TUTAR; }
+  else if(tip === 'tutar'){
+    const t = Number(document.getElementById('aidatTutarInput').value)||0;
+    if(t <= 0){ alert('Geçerli tutar girin'); return; }
+    yeniTutar = t; val = t;
+    if(t > AIDAT_TUTAR){ db.fazlaOdemeler[k] = (db.fazlaOdemeler[k]||0) + (t - AIDAT_TUTAR); alert('Fazla: '+fmtMoney(t-AIDAT_TUTAR)); }
+  }
+  else if(tip === 'odenmedi') val = 'ÖDENMEDİ';
+  else if(tip === 'muaf') val = 'MUAF';
+  else val = '';
+  const fark = yeniTutar - eskiTutar;
+  if(fark > 0) bankaBakiEkle(fark); else if(fark < 0) bankaBakiDus(-fark);
+  db.aidat[k][ayIndex] = val;
+  saveDB(); closeModal(); aptDetay(k);
+}
+function viewAidat(){
+  if(!isAdmin) return viewHome();
+  let html = header('Aidat Takibi', AIDAT_TUTAR+' ₺ · Tıkla → Ödeme Gir');
+  html += '<div class="app"><div class="card"><div class="tbl-wrap"><table><thead><tr>'
+    + '<th class="left sticky-col-1">Daire</th><th class="left sticky-col-2">İsim</th>';
+  AY_ADLARI.forEach(function(a){ html += '<th>'+a.slice(0,3)+'</th>'; });
+  html += '<th>Ödenen</th><th>Kalan</th><th>📱</th></tr></thead><tbody>';
+  db.apartments.forEach(function(a){
+    const k = aptKey(a);
+    const row = db.aidat[k]||[];
+    const odenen = aidatOdenen(k);
+    const kalan = aidatKalan(k);
+    const telVar = telGecerliMi(a.telefon);
+    html += '<tr><td class="left sticky-col-1"><b>'+a.daire+'</b></td>'
+      + '<td class="left sticky-col-2" style="max-width:110px;overflow:hidden;text-overflow:ellipsis">'+(a.isim||'-')+'</td>';
+    AY_ADLARI.forEach(function(_, i){
+      const v = row[i];
+      let cls='cell-empty', lbl='·';
+      if(v==='MUAF'){cls='cell-muaf';lbl='M';}
+      else if(v==='ÖDENMEDİ'){cls='cell-unpaid';lbl='X';}
+      else if(v && String(v).indexOf('ESKİ')>-1){cls='cell-old';lbl='E';}
+      else if(typeof v==='number' && v>0){cls='cell-paid';lbl=Math.round(v);}
+      else if(v && !isNaN(Number(v)) && Number(v)>0){cls='cell-paid';lbl=Math.round(Number(v));}
+      html += '<td class="'+cls+'" onclick="editAidat(\''+k+'\','+i+')">'+lbl+'</td>';
+    });
+    html += '<td><b>'+odenen.toLocaleString('tr-TR')+'</b></td>'
+      + '<td class="'+(kalan>0?'cell-unpaid':'cell-paid')+'"><b>'+kalan.toLocaleString('tr-TR')+'</b></td>'
+      + '<td>'+(telVar?'<button class="btn btn-xs btn-wa" onclick="bildirimGonder(\''+k+'\')">📱</button>':'<span style="font-size:.65rem;color:#cbd5e1">yok</span>')+'</td></tr>';
+  });
+  html += '</tbody></table></div><div class="divider"></div>'
+    + '<div class="row"><span class="muted">Toplam ödenen: <b>'+fmtMoney(toplamAidatOdenen())+'</b></span>'
+    + '<span class="muted">Toplam borç: <b>'+fmtMoney(toplamAidatBorc())+'</b></span></div></div></div>';
+  return html;
+}
+function bildirimGonder(k){
+  if(!isAdmin) return;
+  const a = getApt(k);
+  if(!a) return;
+  if(!telGecerliMi(a.telefon)){ alert('Telefon kayıtlı değil'); return; }
+  const toplamBorc = aidatKalan(k);
+  const sablon = toplamBorc > 0 ? db.sablonlar.borcHatirlatma : db.sablonlar.borcYok;
+  const mesaj = sablonDoldur(sablon, k);
+  let body = '<h2>📱 WhatsApp Bildirim</h2>'
+    + '<div class="li"><div class="li-t">Daire</div><div class="li-v">'+k+'</div></div>'
+    + '<div class="li"><div class="li-t">İsim</div><div class="li-v" style="font-size:.82rem">'+(a.isim||'-')+'</div></div>'
+    + '<div class="li"><div class="li-t">Telefon</div><div class="li-v" style="font-size:.82rem">'+a.telefon+'</div></div>'
+    + '<div class="fg" style="margin-top:12px"><label>Mesaj</label><textarea class="fc" id="waMesaj" rows="14">'+mesaj+'</textarea></div>'
+    + '<button class="btn btn-wa btn-block" onclick="waGonderOnayli(\''+k+'\')">📱 WhatsApp Aç</button>'
+    + '<button class="btn btn-block" style="margin-top:8px" onclick="closeModal()">İptal</button>';
+  openModal(body);
+}
+function waGonderOnayli(k){
+  if(!isAdmin) return;
+  const mesaj = document.getElementById('waMesaj').value;
+  if(whatsappGonder(k, mesaj)){ closeModal(); alert('WhatsApp açıldı.'); }
+  else alert('Gönderilemedi.');
+}
+function viewBildirimler(){
+  if(!isAdmin) return viewHome();
+  let html = header('Toplu WhatsApp','Bildirim gönder');
+  html += '<div class="app"><div class="card">'
+    + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">'
+    + '<button class="btn btn-sm btn-primary" onclick="topluSec(\'borclu\')">Borçluları Seç</button>'
+    + '<button class="btn btn-sm btn-primary" onclick="topluSec(\'hepsi\')">Tümünü Seç</button>'
+    + '<button class="btn btn-sm" onclick="topluSec(\'temizle\')">Temizle</button>'
+    + '<button class="btn btn-sm btn-wa" onclick="topluGonder()">📱 Gönder</button>'
+    + '</div><div id="bildirimListesi">';
+  db.apartments.forEach(function(a){
+    const k = aptKey(a);
+    const toplam = aidatKalan(k);
+    const telVar = telGecerliMi(a.telefon);
+    if(!telVar){
+      html += '<div class="bildirim-satir no-phone"><div class="bs-info"><div class="bs-kod">'+k+' - '+(a.isim||'-')+'</div><div class="bs-tel" style="color:#c62828">📵 Telefon yok</div></div><div class="bs-borc">'+(toplam>0?fmtMoney(toplam):'borç yok')+'</div></div>';
+    } else {
+      html += '<label class="bildirim-satir"><input type="checkbox" class="bs-check" value="'+k+'" data-borc="'+toplam+'" '+(toplam>0?'checked':'')+'>'
+        + '<div class="bs-info"><div class="bs-kod">'+k+' - '+(a.isim||'-')+'</div><div class="bs-tel">📱 '+a.telefon+'</div></div>'
+        + '<div class="bs-borc '+(toplam>0?'':'ok')+'">'+(toplam>0?fmtMoney(toplam):'borç yok')+'</div></label>';
+    }
+  });
+  html += '</div></div></div>';
+  return html;
+}
+function topluSec(mod){
+  document.querySelectorAll('#bildirimListesi input[type="checkbox"]').forEach(function(c){
+    const b = Number(c.dataset.borc)||0;
+    if(mod === 'hepsi') c.checked = true;
+    else if(mod === 'borclu') c.checked = b > 0;
+    else c.checked = false;
+  });
+}
+function topluGonder(){
+  const secili = Array.from(document.querySelectorAll('#bildirimListesi input[type="checkbox"]:checked')).map(function(c){ return c.value; });
+  if(!secili.length){ alert('Daire seçilmedi'); return; }
+  if(!confirm(secili.length+' daireye WhatsApp açılacak.')) return;
+  secili.forEach(function(k, i){ setTimeout(function(){ bildirimGonder(k); }, i * 700); });
+}
+function viewSablonlar(){
+  if(!isAdmin) return viewHome();
+  let html = header('Mesaj Şablonları','WhatsApp için');
+  html += '<div class="app"><div class="card">'
+    + '<div class="muted" style="margin-bottom:10px">Değişkenler: <span class="tag">{ISIM}</span><span class="tag">{DAIRE}</span><span class="tag">{AIDAT_ODENEN}</span><span class="tag">{AIDAT_BORC}</span><span class="tag">{TOPLAM_BORC}</span><span class="tag">{ALACAK}</span></div>'
+    + '<div class="fg"><label>Borç Hatırlatma</label><textarea class="fc" id="s_borc" rows="12">'+db.sablonlar.borcHatirlatma+'</textarea></div>'
+    + '<div class="fg"><label>Borç Yok</label><textarea class="fc" id="s_yok" rows="6">'+db.sablonlar.borcYok+'</textarea></div>'
+    + '<button class="btn btn-primary btn-block" onclick="sablonKaydet()">Kaydet</button>'
+    + '<button class="btn btn-block" style="margin-top:8px" onclick="sablonSifirla()">Varsayılana Dön</button>'
+    + '</div></div>';
+  return html;
+}
+function sablonKaydet(){
+  db.sablonlar.borcHatirlatma = document.getElementById('s_borc').value;
+  db.sablonlar.borcYok = document.getElementById('s_yok').value;
+  saveDB(); alert('Kaydedildi.');
+}
+function sablonSifirla(){
+  if(!confirm('Varsayılana dön?')) return;
+  db.sablonlar = JSON.parse(JSON.stringify(DEFAULT_SABLONLAR));
+  saveDB(); render();
+}
+function viewGider(){
+  if(!isAdmin) return viewHome();
+  let html = header('Giderler','Site Harcamaları');
+  html += '<div class="app"><div class="stats"><div class="stat red"><div class="lbl">Toplam</div><div class="val">'+fmtMoney(toplamGider())+'</div></div>'
+    + '<div class="stat"><div class="lbl">Kayıt</div><div class="val">'+db.giderler.length+'</div></div></div>';
+  html += '<div class="card"><div class="card-title">➕ Yeni Gider</div>'
+    + '<div class="fg"><label>Açıklama</label><input class="fc" id="g_aciklama"></div>'
+    + '<div class="fg"><label>Ay</label><input class="fc" id="g_ay"></div>'
+    + '<div class="fg"><label>Tutar (₺)</label><input type="number" step="0.01" class="fc" id="g_tutar" value="0"></div>'
+    + '<div class="fg"><label>Tarih</label><input type="date" class="fc" id="g_tarih" value="'+bugun()+'"></div>'
+    + '<button class="btn btn-primary btn-block" onclick="giderEkle()">Kaydet</button></div>';
+  html += '<div class="card"><div class="card-title">📋 Kayıtlar</div>';
+  if(!db.giderler.length) html += '<div class="empty">Kayıt yok.</div>';
+  else {
+    db.giderler.slice().sort(function(a,b){ return new Date(b.tarih)-new Date(a.tarih); }).forEach(function(g){
+      html += '<div class="li"><div style="flex:1"><div class="li-t">'+g.aciklama+'</div><div class="li-d">'+(g.ay||'')+' · '+fmtDate(g.tarih)+'</div></div>'
+        + '<div class="li-v red">-'+fmtMoney(g.tutar)+'</div>'
+        + '<div class="li-actions"><button class="btn btn-xs btn-danger" onclick="giderSil('+g.id+')">🗑️</button></div></div>';
+    });
+  }
+  html += '</div></div>';
+  return html;
+}
+function giderEkle(){
+  const rec = { id: Date.now(), aciklama: document.getElementById('g_aciklama').value.trim(), ay: document.getElementById('g_ay').value.trim(), tutar: Number(document.getElementById('g_tutar').value)||0, tarih: document.getElementById('g_tarih').value, durum:'Ödendi' };
+  if(!rec.aciklama){ alert('Açıklama gerekli'); return; }
+  db.giderler.push(rec);
+  if(rec.tutar > 0) bankaBakiDus(rec.tutar);
+  saveDB(); render(); alert('Gider eklendi.');
+}
+function giderSil(id){
+  if(!confirm('Silinsin mi?')) return;
+  const g = db.giderler.find(function(x){ return x.id===id; });
+  if(g && Number(g.tutar) > 0) bankaBakiEkle(Number(g.tutar));
+  db.giderler = db.giderler.filter(function(x){ return x.id!==id; });
+  saveDB(); render();
+}
+function viewIslemler(){
+  if(!isAdmin) return viewHome();
+  let html = header('Yapılan İşlemler','');
+  html += '<div class="app"><div class="card"><button class="btn btn-primary btn-block" onclick="islemYeniForm()">➕ Yeni İşlem</button></div>';
+  html += '<div class="card"><div class="card-title">📋 Kayıtlar <span class="badge-cnt">'+((db.islemler||[]).length)+'</span></div>';
+  if(!(db.islemler||[]).length) html += '<div class="empty">Kayıt yok.</div>';
+  else {
+    db.islemler.slice().sort(function(a,b){ return new Date(b.tarih)-new Date(a.tarih); }).forEach(function(i){
+      html += '<div class="li"><div style="flex:1"><div class="li-t">'+i.baslik+'</div><div class="li-d">'+fmtDate(i.tarih)+'</div>'
+        + (i.aciklama?'<div style="margin-top:5px;font-size:.83rem">'+i.aciklama+'</div>':'')
+        + '</div><div class="li-actions"><button class="btn btn-xs btn-danger" onclick="islemSil('+i.id+')">🗑️</button></div></div>';
+    });
+  }
+  html += '</div></div>';
+  return html;
+}
+function islemYeniForm(){
+  const body = '<h2>Yeni İşlem</h2>'
+    + '<div class="fg"><label>Tarih</label><input type="date" class="fc" id="i_tarih" value="'+bugun()+'"></div>'
+    + '<div class="fg"><label>Başlık</label><input class="fc" id="i_baslik"></div>'
+    + '<div class="fg"><label>Açıklama</label><textarea class="fc" id="i_aciklama" rows="4"></textarea></div>'
+    + '<button class="btn btn-primary btn-block" onclick="islemEkle()">Kaydet</button>';
+  openModal(body);
+}
+function islemEkle(){
+  const baslik = document.getElementById('i_baslik').value.trim();
+  if(!baslik){ alert('Başlık gerekli'); return; }
+  if(!db.islemler) db.islemler = [];
+  db.islemler.push({ id: Date.now(), tarih: document.getElementById('i_tarih').value || bugun(), baslik: baslik, aciklama: document.getElementById('i_aciklama').value.trim() });
+  saveDB(); closeModal(); render();
+}
+function islemSil(id){ if(!confirm('Silinsin mi?')) return; db.islemler = (db.islemler||[]).filter(function(x){ return x.id!==id; }); saveDB(); render(); }
+function viewDuyurular(){
+  if(!isAdmin) return viewHome();
+  let html = header('Duyurular','');
+  html += '<div class="app"><div class="card"><button class="btn btn-primary btn-block" onclick="duyuruYeniForm()">➕ Yeni Duyuru</button></div>';
+  html += '<div class="card"><div class="card-title">📢 Kayıtlar</div>';
+  if(!db.duyurular.length) html += '<div class="empty">Kayıt yok.</div>';
+  else {
+    db.duyurular.slice().sort(function(a,b){ return new Date(b.tarih)-new Date(a.tarih); }).forEach(function(d){
+      html += '<div class="li"><div style="flex:1"><div class="li-t">'+(d.onemli?'🔴 ':'')+d.baslik+'</div><div class="li-d">'+fmtDate(d.tarih)+'</div><div style="margin-top:5px;font-size:.83rem">'+d.icerik+'</div></div>'
+        + '<div class="li-actions"><button class="btn btn-xs btn-danger" onclick="duyuruSil('+d.id+')">🗑️</button></div></div>';
+    });
+  }
+  html += '</div></div>';
+  return html;
+}
+function duyuruYeniForm(){
+  const body = '<h2>Yeni Duyuru</h2>'
+    + '<div class="fg"><label>Başlık</label><input class="fc" id="d_baslik"></div>'
+    + '<div class="fg"><label>İçerik</label><textarea class="fc" id="d_icerik" rows="4"></textarea></div>'
+    + '<div class="fg"><label><input type="checkbox" id="d_onemli"> Önemli</label></div>'
+    + '<button class="btn btn-primary btn-block" onclick="duyuruEkle()">Yayınla</button>';
+  openModal(body);
+}
+function duyuruEkle(){
+  const b = document.getElementById('d_baslik').value.trim();
+  const i = document.getElementById('d_icerik').value.trim();
+  if(!b||!i){ alert('Başlık ve içerik gerekli'); return; }
+  db.duyurular.push({ id:Date.now(), baslik:b, icerik:i, tarih:bugun(), onemli: document.getElementById('d_onemli').checked });
+  saveDB(); closeModal(); render();
+}
+function duyuruSil(id){ if(!confirm('Silinsin mi?')) return; db.duyurular = db.duyurular.filter(function(d){ return d.id!==id; }); saveDB(); render(); }
+function viewMore(){
+  if(!isAdmin) return viewHome();
+  let html = header('Daha Fazla','');
+  html += '<div class="app"><div class="card"><button class="btn btn-teal btn-block" onclick="daireYukleForm()">📎 PDF / Excel Yükle - Daire Ekle</button></div>'
+    + '<div class="card"><div class="more-grid">'
+    + '<div class="more-item" onclick="navTo(\'islemler\')"><span class="ic">📋</span>Yapılan İşlemler</div>'
+    + '<div class="more-item" onclick="navTo(\'duyurular\')"><span class="ic">📢</span>Duyurular</div>'
+    + '<div class="more-item" onclick="navTo(\'bildirimler\')"><span class="ic">📱</span>WhatsApp</div>'
+    + '<div class="more-item" onclick="navTo(\'sablonlar\')"><span class="ic">✏️</span>Şablonlar</div>'
+    + '<div class="more-item" onclick="excelCikar()"><span class="ic">📥</span>Excel Çıkar</div>'
+    + '<div class="more-item" onclick="bankaBakiyeDuzenle()"><span class="ic">💵</span>Bakiye Ayarla</div>'
+    + '<div class="more-item" onclick="fazlaTemizle()"><span class="ic">🧹</span>Fazla Temizle</div>'
+    + '</div></div></div>';
+  return html;
+}
+function excelCikar(){
+  try{
+    const wb = XLSX.utils.book_new();
+    const dData = [['BLOK','DAİRE','İSİM','TELEFON','PLAKA','EV SAHİBİ','EV TEL','FAZLA']];
+    db.apartments.forEach(function(a){ const k = aptKey(a); dData.push([a.blok, a.daire, a.isim||'', a.telefon||'', a.plaka||'', a.evsahibi||'', a.evTel||'', fazlaOdemesi(k)||0]); });
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(dData), 'DAİRELER');
+    const aData = [['BLOK','DAİRE','İSİM'].concat(AY_ADLARI).concat(['ÖDENEN','KALAN'])];
+    db.apartments.forEach(function(a){ const k = aptKey(a); const row = db.aidat[k]||[]; aData.push([a.blok, a.daire, a.isim||''].concat(AY_ADLARI.map(function(_, i){ return row[i]||''; })).concat([aidatOdenen(k), aidatKalan(k)])); });
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(aData), 'AİDAT');
+    const gData = [['AÇIKLAMA','AY','TUTAR','TARİH']];
+    db.giderler.forEach(function(g){ gData.push([g.aciklama||'', g.ay||'', g.tutar||0, g.tarih||'']); });
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(gData), 'GİDER');
+    XLSX.writeFile(wb, 'Sirkinti_Evleri_'+bugun()+'.xlsx');
+  }catch(e){ alert('Excel oluşturulamadı: '+e.message); }
+}
+function openModal(html){ document.getElementById('modBody').innerHTML = html; document.getElementById('mov').classList.add('open'); }
+function closeModal(){ document.getElementById('mov').classList.remove('open'); }
+document.getElementById('mov').addEventListener('click', function(e){ if(e.target.id==='mov') closeModal(); });
+
+function hideLoading(){ const el = document.getElementById('loadingScreen'); if(el) el.style.display = 'none'; }
+try{ renderNav(); render(); hideLoading(); console.log('✓ Uygulama başlatıldı'); }
+catch(e){ console.error(e); hideLoading(); document.getElementById('app').innerHTML = '<div style="padding:30px;text-align:center"><h2>⚠️ Hata</h2><p>'+e.message+'</p><button onclick="location.reload()">Yenile</button></div>'; }
+initFirebase().catch(function(e){ console.error(e); setSyncStatus('error', 'Bulut yok'); });
+
+window.navTo=navTo; window.aptDetay=aptDetay; window.kaydetApt=kaydetApt; window.kaydetVeWhatsapp=kaydetVeWhatsapp;
+window.editAidat=editAidat; window.aidatSec=aidatSec; window.saveAidat=saveAidat; window.giderEkle=giderEkle; window.giderSil=giderSil;
+window.duyuruYeniForm=duyuruYeniForm; window.duyuruEkle=duyuruEkle; window.duyuruSil=duyuruSil;
+window.islemYeniForm=islemYeniForm; window.islemEkle=islemEkle; window.islemSil=islemSil;
+window.adminCikis=adminCikis; window.sakinCikis=sakinCikis; window.loginSubmit=loginSubmit; window.sakinLoginSubmit=sakinLoginSubmit;
+window.bankaBakiyeDuzenle=bankaBakiyeDuzenle; window.bankaBakiyeKaydet=bankaBakiyeKaydet; window.fazlaTemizle=fazlaTemizle;
+window.excelCikar=excelCikar; window.closeModal=closeModal; window.bildirimGonder=bildirimGonder; window.waGonderOnayli=waGonderOnayli;
+window.topluSec=topluSec; window.topluGonder=topluGonder; window.sablonKaydet=sablonKaydet; window.sablonSifirla=sablonSifirla;
+window.daireYukleForm=daireYukleForm; window.daireYukle=daireYukle; window.yukleSil=yukleSil; window.yukleOnayla=yukleOnayla;
+</script>
+</body>
+</html>
