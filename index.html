@@ -28,15 +28,16 @@ body{background:var(--bg);color:var(--text);padding-bottom:80px;font-size:14.5px
 .big-stat .val{font-size:1.9rem;font-weight:800;letter-spacing:-.02em}
 .big-stat.balance{border-top:4px solid var(--success)}.big-stat.balance .val{color:var(--success)}
 .big-stat.expense{border-top:4px solid var(--danger)}.big-stat.expense .val{color:var(--danger)}
+.big-stat.income{border-top:4px solid var(--info)}.big-stat.income .val{color:var(--info)}
 .li{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border);gap:10px;flex-wrap:wrap}
 .li:last-child{border-bottom:none}
 .li-t{font-weight:600;font-size:.88rem}
 .li-d{font-size:.74rem;color:var(--text-soft);margin-top:2px}
 .li-v{font-weight:700;color:var(--primary-dark);white-space:nowrap;font-size:.88rem}
-.li-v.green{color:var(--success)}.li-v.red{color:var(--danger)}.li-v.teal{color:#00897b}
+.li-v.green{color:var(--success)}.li-v.red{color:var(--danger)}.li-v.teal{color:#00897b}.li-v.blue{color:var(--info)}
 .li-actions{display:flex;gap:4px;flex-shrink:0}
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:11px 16px;border-radius:30px;font-weight:600;font-size:.85rem;border:none;cursor:pointer;transition:.15s;background:var(--surface-soft);color:var(--text)}
-.btn-primary{background:var(--primary);color:#fff}.btn-success{background:var(--success);color:#fff}.btn-danger{background:var(--danger);color:#fff}.btn-wa{background:var(--wa);color:#fff}.btn-teal{background:#00897b;color:#fff}
+.btn-primary{background:var(--primary);color:#fff}.btn-success{background:var(--success);color:#fff}.btn-danger{background:var(--danger);color:#fff}.btn-wa{background:var(--wa);color:#fff}.btn-teal{background:#00897b;color:#fff}.btn-info{background:var(--info);color:#fff}
 .btn-block{width:100%}
 .btn-sm{padding:6px 11px;font-size:.75rem;border-radius:20px}
 .btn-xs{padding:4px 9px;font-size:.7rem;border-radius:16px}
@@ -130,6 +131,7 @@ tr:last-child td{border-bottom:none}
 .uyari.teal{background:#e0f2f1;border-color:#80cbc4;color:#00695c}
 .uyari.red{background:#ffebee;border-color:#ef9a9a;color:#b71c1c}
 .uyari.green{background:#e8f5e9;border-color:#a5d6a7;color:#1b5e20}
+.uyari.blue{background:#e3f2fd;border-color:#90caf9;color:#1565c0}
 .login-wrap{max-width:400px;margin:40px auto;padding:24px;background:#fff;border-radius:var(--radius);box-shadow:var(--shadow);border:1px solid var(--border)}
 .login-wrap h2{text-align:center;color:var(--primary-dark);margin-bottom:6px;font-size:1.1rem}
 .login-wrap .sub{text-align:center;color:var(--text-soft);font-size:.8rem;margin-bottom:20px}
@@ -143,6 +145,13 @@ tr:last-child td{border-bottom:none}
 #syncStatus{position:fixed;top:8px;right:8px;background:rgba(0,0,0,.75);color:#fff;padding:4px 10px;border-radius:20px;font-size:.7rem;font-weight:600;z-index:998;opacity:0;transition:opacity .3s}
 #syncStatus.show{opacity:1}
 .err-box{background:var(--danger-bg);border:2px solid var(--danger);color:var(--danger);padding:16px;border-radius:12px;margin:20px;font-family:monospace;font-size:.8rem;word-break:break-word}
+.pdf-ozet-row{display:flex;align-items:center;gap:6px;padding:6px 8px;border-bottom:1px solid #eee;font-size:.75rem}
+.pdf-ozet-kod{font-weight:800;min-width:38px;color:var(--primary-dark)}
+.pdf-ozet-isim{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pdf-ay{display:inline-block;width:20px;text-align:center;font-size:.7rem;font-weight:700;padding:2px 0;margin:1px;border-radius:4px}
+.pdf-ay.odendi{background:var(--success-bg);color:var(--success)}
+.pdf-ay.borc{background:var(--danger-bg);color:var(--danger)}
+.pdf-ay.bos{background:#f1f5f9;color:#94a3b8}
 </style>
 </head>
 <body>
@@ -194,23 +203,19 @@ function esc(s){
     .replace(/'/g,'&#39;');
 }
 
-function normalizeDurum(v){
-  if(v === undefined || v === null) return '';
-  if(typeof v === 'number') return String(v);
+function isOdenmediVal(v){
+  if(!v) return false;
   var s = String(v).toUpperCase()
     .replace(/Ö/g,'O').replace(/Ü/g,'U').replace(/İ/g,'I')
-    .replace(/Ş/g,'S').replace(/Ç/g,'C').replace(/Ğ/g,'G')
-    .replace(/I/g,'I');
-  return s;
-}
-
-function isOdenmediVal(v){
-  var n = normalizeDurum(v);
-  return n === 'ODENMEDI' || n === 'ÖDENMEDİ';
+    .replace(/Ş/g,'S').replace(/Ç/g,'C').replace(/Ğ/g,'G');
+  return s === 'ODENMEDI';
 }
 function isMuafVal(v){
-  var n = normalizeDurum(v);
-  return n === 'MUAF';
+  if(!v) return false;
+  var s = String(v).toUpperCase()
+    .replace(/Ö/g,'O').replace(/Ü/g,'U').replace(/İ/g,'I')
+    .replace(/Ş/g,'S').replace(/Ç/g,'C').replace(/Ğ/g,'G');
+  return s === 'MUAF';
 }
 function isEskiVal(v){
   if(!v) return false;
@@ -379,6 +384,9 @@ function toplamAidatOdenen(){
   Object.keys(db.aidat).forEach(function(k){ t+=aidatOdenen(k); });
   return t;
 }
+function toplamBankaGelir(){
+  return (db.bankaHareketleri||[]).reduce(function(s,h){ return s + (Number(h.tutar)||0); }, 0);
+}
 function daireBankaHareketleri(k){
   return (db.bankaHareketleri||[]).filter(function(h){ return h.daire === k; });
 }
@@ -468,7 +476,7 @@ function sonBildirimKisa(daireKodu){
 }
 
 // ============================================================
-// PDF / EXCEL
+// PDF METİN ÇIKARMA
 // ============================================================
 async function pdfMetinCikar(file){
   if(!window.pdfjsLib) throw new Error('PDF kutuphanesi yuklenemedi');
@@ -481,7 +489,7 @@ async function pdfMetinCikar(file){
   for(var p = 1; p <= pdf.numPages; p++){
     var page = await pdf.getPage(p);
     var textContent = await page.getTextContent();
-    var items = textContent.items.map(function(it){ return { str: it.str, x: it.transform[4], y: it.transform[5] }; });
+    var items = textContent.items.map(function(it){ return { str: it.str, x: it.transform[4], y: it.transform[5], w: it.width||0 }; });
     var satirlar = {};
     items.forEach(function(it){
       var yv = Math.round(it.y / 3) * 3;
@@ -491,65 +499,157 @@ async function pdfMetinCikar(file){
     var yKeys = Object.keys(satirlar).map(Number).sort(function(a,b){ return b - a; });
     yKeys.forEach(function(y){
       var kelimeler = satirlar[y].sort(function(a,b){ return a.x - b.x; });
-      var satir = kelimeler.map(function(w){ return w.str; }).join(' ').trim();
-      if(satir) tumMetin.push(satir);
+      // Her item için {str, x} bilgisi korunuyor
+      var satirItems = kelimeler.map(function(w){ return { str: w.str, x: w.x }; });
+      var satir = satirItems.map(function(w){ return w.str; }).join(' ').trim();
+      if(satir) tumMetin.push({ metin: satir, items: satirItems });
     });
   }
   return tumMetin;
 }
 
+// ============================================================
+// AIDAT PDF PARSE — YENİDEN YAZILDI
+// ============================================================
+/**
+ * PDF'te her satır bir daireyi temsil eder.
+ * Sütunlar: Daire | İsim | 12 ay sütunu (Ocak-Aralık)
+ *
+ * Hücre içeriği:
+ *   ✓ (tik)      → o ay ÖDENDİ (aidat tutarı kadar)
+ *   Sayı (750)   → o ay ÖDENMEDİ (borçlu, tutar = sayı)
+ *   Boş          → kayıt yok
+ *
+ * Çıktı: [{ daire, isim, aylikDeger: [12 eleman], odenenTutar, borcluTutar }]
+ *   aylikDeger[i] = 'ODENDI' | 'ODENMEDI' | '' (boş)
+ */
 function parseAidatPDF(satirlar){
   var sonuc = [];
-  satirlar.forEach(function(satir){
+  satirlar.forEach(function(satirObj){
     try{
-      satir = satir.trim();
-      if(!satir) return;
-      if(satir.indexOf('DAİRE') > -1 || satir.indexOf('ADI SOYADI') > -1) return;
-      if(satir.indexOf('GÜNCELLEME') > -1) return;
-      if(satir.indexOf('OCAK') > -1 && satir.indexOf('ŞUBAT') > -1) return;
-      var mDaire = satir.match(/^(\d{1,2})\s+/);
+      var satirMetni = satirObj.metin || '';
+      var items = satirObj.items || [];
+      if(!satirMetni) return;
+
+      // Header/footer atla
+      if(satirMetni.indexOf('DAİRE') > -1 && satirMetni.indexOf('ADI') > -1) return;
+      if(satirMetni.indexOf('GÜNCELLEME') > -1) return;
+      if(satirMetni.indexOf('TOPLAM') > -1 && satirMetni.indexOf('AY') > -1) return;
+
+      // Satırın başında daire numarası olmalı
+      var mDaire = satirMetni.match(/^(\d{1,2})\s+/);
       if(!mDaire) return;
       var daire = Number(mDaire[1]);
       if(daire < 1 || daire > TOPLAM_DAIRE) return;
-      var kalan = satir.substring(mDaire[0].length);
-      var mIsim = kalan.match(/^([A-ZÇĞİÖŞÜ][A-ZÇĞİÖŞÜ\s\.]+?)(?=\d|✓|Borcuy)/);
-      var isim = mIsim ? mIsim[1].trim() : '';
-      if(mIsim) kalan = kalan.substring(mIsim[0].length);
-      var borcYok = /Borcuy\s*Yok/i.test(kalan);
-      kalan = kalan.replace(/Borcuy\s*Yok/i, '').trim();
-      var mToplam = kalan.match(/^(\d+)/);
-      if(mToplam) kalan = kalan.substring(mToplam[0].length);
+
+      // Daire numarasından sonraki item index'ini bul
+      var baslangicIdx = 0;
+      for(var i = 0; i < items.length; i++){
+        var t = (items[i].str||'').trim();
+        if(t === String(daire)){ baslangicIdx = i + 1; break; }
+      }
+      // Daire numarası ve ardından gelen item'lar
+      var kalan = items.slice(baslangicIdx);
+
+      // İsim: ilk büyük harfle başlayan ve sayı olmayan kelime grubu
+      var isimParcalari = [];
+      var idx = 0;
+      while(idx < kalan.length){
+        var s = (kalan[idx].str||'').trim();
+        if(!s) { idx++; continue; }
+        // Ödeme işareti veya sayı ise dur
+        if(s === '✓' || s === '✔' || s === '√' || s === 'V' || s === 'v') break;
+        if(/^\d+([.,]\d+)?$/.test(s)) break;
+        if(s === 'Borcuy' || s === 'Borclu' || s === 'BORCLU' || s === 'BORCUY') break;
+        if(s === 'Yok' || s === 'YOK') break;
+        if(isAidatDurumKelimesi(s)) break;
+        // Sayısal olmayan harf içeriyorsa isim parçası
+        if(/[A-Za-zÇĞİÖŞÜçğıöşü]/.test(s)){
+          isimParcalari.push(s);
+          idx++;
+        } else { idx++; }
+      }
+      var isim = isimParcalari.join(' ').trim();
+
+      // Şimdi geri kalan item'lardan aylık durumları çıkar
       var aylikDeger = new Array(12).fill('');
-      var ayIdx = 0, pozisyon = 0;
-      while(ayIdx < 12 && pozisyon < kalan.length){
-        while(pozisyon < kalan.length && /\s/.test(kalan[pozisyon])) pozisyon++;
-        if(pozisyon >= kalan.length) break;
-        var ch = kalan[pozisyon];
-        if(ch === '✓'){
+      var odenenTutar = 0;
+      var borcluTutar = 0;
+      var ayIdx = 0;
+
+      while(idx < kalan.length && ayIdx < 12){
+        var s = (kalan[idx].str||'').trim();
+        if(!s){ idx++; continue; }
+
+        if(s === '✓' || s === '✔' || s === '√' || s === 'V' || s === 'v'){
           aylikDeger[ayIdx] = 'ODENDI';
-          ayIdx++; pozisyon++;
-        } else if(/\d/.test(ch)){
-          var mSayi = kalan.substring(pozisyon).match(/^(\d+)/);
-          if(mSayi){
+          odenenTutar += getAidatTutar();
+          ayIdx++;
+          idx++;
+        }
+        else if(/^\d+([.,]\d+)?$/.test(s)){
+          // Sayı: bu ay borçlu
+          var tutar = Number(String(s).replace(',','.'));
+          if(!isNaN(tutar) && tutar > 0){
             aylikDeger[ayIdx] = 'ODENMEDI';
-            ayIdx++; pozisyon += mSayi[0].length;
-          } else pozisyon++;
-        } else pozisyon++;
+            borcluTutar += tutar;
+            ayIdx++;
+          }
+          idx++;
+        }
+        else if(s === 'Borcuy' || s === 'Borclu' || s === 'BORCLU' || s === 'BORCUY' || s === 'Yok' || s === 'YOK'){
+          idx++;
+        }
+        else {
+          // Tanınmayan içerik — atla
+          idx++;
+        }
       }
-      if(borcYok && aylikDeger.every(function(v){ return v === ''; })){
-        for(var z = 0; z < 12; z++) aylikDeger[z] = 'ODENDI';
+
+      // Özel durum: "Borcuy Yok" satırı varsa hepsi ödendi say
+      var satirTamami = satirMetni.toLowerCase();
+      if((satirTamami.indexOf('borcuy yok') > -1 || satirTamami.indexOf('borclu yok') > -1) &&
+         aylikDeger.every(function(v){ return v === ''; })){
+        for(var z = 0; z < 12; z++){
+          aylikDeger[z] = 'ODENDI';
+          odenenTutar += getAidatTutar();
+        }
       }
-      sonuc.push({ daire: daire, isim: isim, aylikDeger: aylikDeger, borcYok: borcYok });
-    }catch(e){ /* satır atla */ }
+
+      sonuc.push({
+        daire: daire,
+        isim: isim,
+        aylikDeger: aylikDeger,
+        odenenTutar: odenenTutar,
+        borcluTutar: borcluTutar,
+        ham: satirMetni
+      });
+    }catch(e){
+      console.warn('parseAidatPDF satir hatasi:', e);
+    }
   });
   return sonuc;
 }
 
+function isAidatDurumKelimesi(s){
+  var norm = String(s).toUpperCase()
+    .replace(/Ö/g,'O').replace(/Ü/g,'U').replace(/İ/g,'I')
+    .replace(/Ş/g,'S').replace(/Ç/g,'C').replace(/Ğ/g,'G');
+  return norm === 'ODENDI' || norm === 'ODENMEDI' || norm === 'MUAF' ||
+         norm === 'OCAK' || norm === 'SUBAT' || norm === 'MART' ||
+         norm === 'NISAN' || norm === 'MAYIS' || norm === 'HAZIRAN' ||
+         norm === 'TEMMUZ' || norm === 'AGUSTOS' || norm === 'EYLUL' ||
+         norm === 'EKIM' || norm === 'KASIM' || norm === 'ARALIK';
+}
+
+// ============================================================
+// ICMAL PDF PARSE
+// ============================================================
 function parseIcmalPDF(satirlar){
   var sonuc = { gelirler: [], giderler: [] };
-  satirlar.forEach(function(satir){
+  satirlar.forEach(function(satirObj){
     try{
-      satir = satir.trim();
+      var satir = (satirObj.metin || satirObj).toString().trim();
       if(!satir) return;
       var m = satir.match(/^(\d{1,3})\s*(\d{2}\.\d{2}\.\d{4})\s*(-?)\s*(\d{1,2})?\s*(\d+)\s+(.+)$/);
       if(!m) return;
@@ -572,9 +672,9 @@ function parseIcmalPDF(satirlar){
 
 function parseEnparaPDF(satirlar){
   var sonuc = [];
-  satirlar.forEach(function(satir){
+  satirlar.forEach(function(satirObj){
     try{
-      satir = satir.trim();
+      var satir = (satirObj.metin || satirObj).toString().trim();
       if(!satir) return;
       var m = satir.match(/^(\d{2}\.\d{2}\.\d{4})\s*(Gelen Transfer|Giden Transfer|Ödeme|Para Çekme|Gelen Havale|Giden Havale)\s+(.+?)\s+(-?[\d.]+,\d{2})\s*TL\s+([\d.]+,\d{2})\s*TL$/);
       if(!m) return;
@@ -660,21 +760,14 @@ function saveToCloud(){
   }, 600);
 }
 
-// DÜZELTME: saveDB artık isAdmin kontrolü yapıyor
 function saveDB(){
   if(!isAdmin){
-    console.warn('Yetkisiz kayıt denemesi engellendi');
+    console.warn('Yetkisiz kayit denemesi engellendi');
     return;
   }
   window.db = db;
   saveLocalDB(db);
   saveToCloud();
-}
-
-// Yalnızca yerel kayıt (sakin girişinde vb. durumlar için)
-function saveLocalOnly(){
-  window.db = db;
-  saveLocalDB(db);
 }
 
 async function loadFromCloud(){
@@ -735,7 +828,6 @@ function startRealtimeSync(){
             if(!db.bankaHareketleri) db.bankaHareketleri = [];
             saveLocalDB(db);
             window.db = db;
-            // DÜZELTME: Modal açıkken render etme
             if(!_modalOpen) safeRender();
           }
         }
@@ -773,7 +865,6 @@ async function initFirebase(){
       try{
         _currentUser = user;
         if(user && user.email === YETKILI_EMAIL){
-          // DÜZELTME: loadFromCloud sonucu kontrol ediliyor
           var ok = await loadFromCloud();
           isAdmin = ok;
           if(!ok){ console.warn('Cloud yuklenemedi, admin modu aktif degil'); }
@@ -852,7 +943,6 @@ function safeRenderNav(){
   catch(e){ console.error('renderNav error:', e); }
 }
 
-// DÜZELTME: safeRender — tüm render hataları yakalanıyor
 function safeRender(){
   if(_renderInProgress){ return; }
   _renderInProgress = true;
@@ -925,6 +1015,7 @@ function render(){
       case 'duyurular': html = viewDuyurular(); break;
       case 'bildirimler': html = viewBildirimler(); break;
       case 'sablonlar': html = viewSablonlar(); break;
+      case 'icmal': html = viewIcmal(); break;
       default: html = viewHome();
     }
   }
@@ -1090,6 +1181,7 @@ function viewHome(){
   try{
     var bakiye = bankaBaki();
     var gider = toplamGider();
+    var gelir = toplamBankaGelir();
     var duyurular = (db.duyurular||[]).slice().sort(function(a,b){ return new Date(b.tarih)-new Date(a.tarih); }).slice(0,3);
     var sonGiderler = (db.giderler||[]).slice().sort(function(a,b){ return new Date(b.tarih)-new Date(a.tarih); }).slice(0,5);
     var rightBtn = '';
@@ -1097,6 +1189,7 @@ function viewHome(){
     var html = header('SIRKINTI EVLERI A BLOK','Kemal M. Tarafindan Tasarlandi. '+TOPLAM_DAIRE+' Daire', rightBtn);
     html += '<div class="app">';
     html += '<div class="big-stat balance"><div class="lbl">Toplam Banka Bakiyesi</div><div class="val">'+fmtMoney(bakiye)+'</div></div>';
+    html += '<div class="big-stat income"><div class="lbl">Toplam Gelir (Aidat)</div><div class="val">'+fmtMoney(gelir)+'</div></div>';
     html += '<div class="big-stat expense"><div class="lbl">Toplam Gider</div><div class="val">'+fmtMoney(gider)+'</div></div>';
     if(isAdmin){
       html += '<div class="card"><div class="card-title">PDF\'ten Otomatik Veri Aktar</div>'
@@ -1125,6 +1218,7 @@ function viewHome(){
     html += '</div>';
     if(isAdmin){
       html += '<div class="card"><div class="card-title">Yonetici Kisayollari</div><div class="more-grid">'
+        + '<div class="more-item" onclick="navTo(\'icmal\')"><span class="ic">📊</span>Genel Icmal</div>'
         + '<div class="more-item" onclick="navTo(\'bildirimler\')"><span class="ic">WA</span>WhatsApp Bildirim</div>'
         + '<div class="more-item" onclick="navTo(\'islemler\')"><span class="ic">IS</span>Yapilan Islemler</div>'
         + '<div class="more-item" onclick="navTo(\'eski\')"><span class="ic">EO</span>Eski Oturan</div>'
@@ -1146,6 +1240,86 @@ function viewHome(){
   }catch(e){
     console.error('viewHome error:', e);
     return '<div class="err-box">Ana sayfa yuklenirken hata: '+esc(e.message)+'</div>';
+  }
+}
+
+// ============================================================
+// GENEL İCMAL (GELİR-GİDER)
+// ============================================================
+function viewIcmal(){
+  if(!isAdmin) return viewHome();
+  try{
+    var aidatGeliri = toplamAidatOdenen();
+    var bankaGelir = toplamBankaGelir();
+    var toplamGelir = aidatGeliri + bankaGelir;
+    var giderler = db.giderler.slice().sort(function(a,b){ return new Date(b.tarih)-new Date(a.tarih); });
+    var toplamGiderVal = toplamGider();
+    var netDurum = toplamGelir - toplamGiderVal;
+    var rightBtn = '<button class="btn-ghost" onclick="navTo(\'home\')">Geri</button>';
+    var html = header('Genel Icmal','Gelir - Gider Ozeti', rightBtn);
+    html += '<div class="app">';
+    html += '<div class="big-stat income"><div class="lbl">Toplam Gelir</div><div class="val">'+fmtMoney(toplamGelir)+'</div></div>';
+    html += '<div class="big-stat expense"><div class="lbl">Toplam Gider</div><div class="val">'+fmtMoney(toplamGiderVal)+'</div></div>';
+    html += '<div class="big-stat '+(netDurum>=0?'balance':'expense')+'" style="'+(netDurum>=0?'border-top-color:#2e7d32':'border-top-color:#c62828')+'"><div class="lbl">Net Durum</div><div class="val" style="color:'+(netDurum>=0?'#2e7d32':'#c62828')+'">'+fmtMoney(netDurum)+'</div></div>';
+
+    html += '<div class="card"><div class="card-title">Gelir Detayi</div>'
+      + '<div class="li"><div class="li-t">Aidat Odenen Toplam</div><div class="li-v green">+'+fmtMoney(aidatGeliri)+'</div></div>'
+      + '<div class="li"><div class="li-t">Banka Hareketleri (Aidat)</div><div class="li-v green">+'+fmtMoney(bankaGelir)+'</div></div>'
+      + '<div class="li"><div class="li-t"><b>Toplam Gelir</b></div><div class="li-v green"><b>+'+fmtMoney(toplamGelir)+'</b></div></div>'
+      + '</div>';
+
+    html += '<div class="card"><div class="card-title">Aidat Odeyen Daireler <span class="badge-cnt">'+db.apartments.filter(function(a){ return aidatOdenen(aptKey(a))>0; }).length+'</span></div>'
+      + '<div class="tbl-wrap"><table><thead><tr><th class="left">Daire</th><th class="left">Isim</th><th>Odenen</th><th>Kalan</th><th>Fazla</th></tr></thead><tbody>';
+    var toplamSatir = 0;
+    db.apartments.forEach(function(a){
+      var k = aptKey(a);
+      var od = aidatOdenen(k);
+      if(od > 0){
+        var kl = aidatKalan(k);
+        var fz = fazlaOdemesi(k);
+        html += '<tr><td class="left"><b>'+esc(k)+'</b></td><td class="left">'+esc(a.isim||'-')+'</td>'
+          + '<td class="cell-paid">'+od.toLocaleString('tr-TR')+'</td>'
+          + '<td class="'+(kl>0?'cell-unpaid':'cell-empty')+'">'+kl.toLocaleString('tr-TR')+'</td>'
+          + '<td>'+(fz>0?'<span style="color:#00897b;font-weight:700">+'+fz+'</span>':'-')+'</td></tr>';
+        toplamSatir += od;
+      }
+    });
+    html += '</tbody></table></div>'
+      + '<div class="li" style="margin-top:8px"><div class="li-t"><b>GENEL TOPLAM</b></div><div class="li-v green"><b>'+fmtMoney(toplamSatir)+'</b></div></div>'
+      + '</div>';
+
+    html += '<div class="card"><div class="card-title">Gider Detayi <span class="badge-cnt">'+giderler.length+'</span></div>';
+    if(giderler.length){
+      giderler.forEach(function(g){
+        html += '<div class="li"><div style="flex:1;min-width:0"><div class="li-t">'+esc(g.aciklama)+'</div><div class="li-d">'+esc(g.ay||'')+' - '+fmtDate(g.tarih)+'</div></div><div class="li-v red">-'+fmtMoney(g.tutar)+'</div></div>';
+      });
+      html += '<div class="li"><div class="li-t"><b>Toplam Gider</b></div><div class="li-v red"><b>-'+fmtMoney(toplamGiderVal)+'</b></div></div>';
+    } else {
+      html += '<div class="empty">Gider kaydi yok.</div>';
+    }
+    html += '</div>';
+
+    html += '<div class="card"><div class="card-title">Banka Hareketleri <span class="badge-cnt">'+(db.bankaHareketleri||[]).length+'</span></div>';
+    if((db.bankaHareketleri||[]).length){
+      html += '<div class="li"><div class="li-t">Toplam Gelir (Banka)</div><div class="li-v green">+'+fmtMoney(bankaGelir)+'</div></div>';
+      var bhs = (db.bankaHareketleri||[]).slice().sort(function(x,y){
+        var dx = String(x.tarih||'').split('.').reverse().join('');
+        var dy = String(y.tarih||'').split('.').reverse().join('');
+        return dy.localeCompare(dx);
+      }).slice(0, 30);
+      bhs.forEach(function(h){
+        html += '<div class="bh-row"><div class="bh-date">'+esc(h.tarih)+'</div><div class="bh-name">'+esc(h.daire)+' - '+esc(h.isim)+'</div><div class="bh-amt">+'+fmtMoney(h.tutar)+'</div>'+(h.aciklama?'<div class="bh-desc">'+esc(h.aciklama)+'</div>':'')+'</div>';
+      });
+      if((db.bankaHareketleri||[]).length > 30) html += '<div class="muted" style="text-align:center;padding:6px">... ve '+((db.bankaHareketleri||[]).length-30)+' kayit daha</div>';
+    } else {
+      html += '<div class="empty">Banka hareketi yok.</div>';
+    }
+    html += '</div>';
+    html += '</div>';
+    return html;
+  }catch(e){
+    console.error('viewIcmal error:', e);
+    return '<div class="err-box">Icmal sayfasi yuklenirken hata: '+esc(e.message)+'</div>';
   }
 }
 
@@ -1450,7 +1624,6 @@ function editAidat(k, ayIndex){
     var AIDAT_TUTAR = getAidatTutar();
     var sayisal = !isOdenmedi && !isMuaf && !isEski && curStr !== '' && !isNaN(Number(curStr)) && Number(curStr)>0;
     var fazla = fazlaOdemesi(k);
-    // DÜZELTME: _aidatSec her zaman sıfırlanır
     window._aidatSec = null;
     var body = '<h2>'+esc(k)+' - '+AY_ADLARI[ayIndex]+'</h2>';
     if(fazla > 0) body += '<div class="uyari teal">Fazla odeme: '+fmtMoney(fazla)+'</div>';
@@ -1632,7 +1805,6 @@ function projeDuzenleForm(id){
   renderProjeForm(p);
 }
 
-// DÜZELTME: secilenDaireler try/catch ve null-safe
 function secilenDaireler(){
   try{
     var r = document.querySelector('input[name="kapsam"]:checked');
@@ -2414,7 +2586,7 @@ function excelCikar(){
   try{
     if(!window.XLSX){ alert('Excel kutuphanesi yuklenemedi'); return; }
     var wb = XLSX.utils.book_new();
-    var genelData = [['SIRKINTI EVLERI - GENEL OZET'],['Tarih', new Date().toLocaleDateString('tr-TR')],[],['Toplam Daire', TOPLAM_DAIRE],['Aidat Tutari', getAidatTutar()],['Aidat Borcu Olan', db.apartments.filter(function(a){ return aidatKalan(aptKey(a))>0; }).length],[],['BANKA BAKIYESI', bankaBaki()],['Toplam Gider', toplamGider()],[],['Toplam Aidat Alacagi', toplamAidatBorc()]];
+    var genelData = [['SIRKINTI EVLERI - GENEL OZET'],['Tarih', new Date().toLocaleDateString('tr-TR')],[],['Toplam Daire', TOPLAM_DAIRE],['Aidat Tutari', getAidatTutar()],['Aidat Borcu Olan', db.apartments.filter(function(a){ return aidatKalan(aptKey(a))>0; }).length],[],['BANKA BAKIYESI', bankaBaki()],['TOPLAM GELIR', toplamAidatOdenen() + toplamBankaGelir()],['Toplam Gider', toplamGider()],[],['Toplam Aidat Alacagi', toplamAidatBorc()]];
     XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(genelData), 'GENEL');
     var dData = [['BLOK','DAIRE','ISIM','TELEFON','PLAKA','FAZLA ODEME']];
     db.apartments.forEach(function(a){
@@ -2525,7 +2697,7 @@ function pdfAktarForm(tip){
   if(!isAdmin) return;
   _pdfAktarTipi = tip;
   var basliklar = {
-    aidat: { t:'Aidat Cizelgesi PDF', ac:'Daire basina 12 aylik odeme durumunu yukler. (tik = odendi, sayi = odenmedi/borc)' },
+    aidat: { t:'Aidat Cizelgesi PDF', ac:'Her satır bir daireyi temsil eder. 12 sütun 12 ay (Ocak-Aralık). Tik = o ay ödendi, sayı = o ay borçlu (üstündeki sayı = borç miktarı), boş = kayıt yok.' },
     icmal: { t:'Icmal (Gelir-Gider) PDF', ac:'Gelir kayitlarini banka hareketlerine ekler.' },
     enpara: { t:'Enpara Hesap Hareketleri PDF', ac:'Bankadaki tum gelir/gider hareketlerini isler.' }
   };
@@ -2560,7 +2732,7 @@ async function pdfAktarBaslat(){
     if(bosMu){
       modBody.innerHTML = '<h2>Veri Bulunamadi</h2>'
         + '<div class="uyari red">PDF\'ten veri cikarilamadi. Ilk 15 satir:</div>'
-        + metinSatirlari.slice(0,15).map(function(s){ return '<div style="font-size:.7rem;padding:3px;border-bottom:1px solid #eee">'+esc(s)+'</div>'; }).join('')
+        + metinSatirlari.slice(0,15).map(function(s){ return '<div style="font-size:.7rem;padding:3px;border-bottom:1px solid #eee">'+esc(s.metin||s)+'</div>'; }).join('')
         + '<button class="btn btn-primary btn-block" style="margin-top:14px" onclick="closeModal()">Kapat</button>';
       return;
     }
@@ -2581,23 +2753,46 @@ function pdfAktarOnizlemeGoster(){
     var body = '';
 
     if(tip === 'aidat'){
-      body += '<h2>Aidat Onizleme ('+data.length+' daire)</h2>'
-        + '<div class="uyari">Tik = ODENDI, sayi = ODENMEDI (borc), nokta = kayit yok</div>'
-        + '<div style="max-height:400px;overflow-y:auto">';
+      // Toplam ödenen ve borçlu sayıları
+      var genelOdenen = 0, genelBorclu = 0, odenenDaireSay = 0, borcluDaireSay = 0;
       data.forEach(function(d){
-        var ozet = d.aylikDeger.map(function(v){
-          if(v === '') return '.';
-          if(v === 'ODENDI') return 'ODENDI';
-          if(v === 'ODENMEDI') return 'BORCLU';
-          return v;
-        }).join(' | ');
-        body += '<div style="padding:6px;border-bottom:1px solid #eee">'
-          + '<b>'+esc(d.daire)+' - '+esc(d.isim)+'</b>'
-          + '<div style="font-family:monospace;font-size:.7rem;color:#555">'+esc(ozet)+'</div></div>';
+        genelOdenen += d.odenenTutar || 0;
+        genelBorclu += d.borcluTutar || 0;
+        if((d.odenenTutar||0) > 0) odenenDaireSay++;
+        if((d.borcluTutar||0) > 0) borcluDaireSay++;
+      });
+      body += '<h2>Aidat Onizleme ('+data.length+' daire)</h2>'
+        + '<div class="uyari"><b>Kural:</b> Tik = ODENDI ('+fmtMoney(getAidatTutar())+'), Sayı = ÖDENMEDİ (borç miktarı).</div>'
+        + '<div class="stats">'
+        + '<div class="stat green"><div class="lbl">Toplam Odenen (Gelir)</div><div class="val">'+fmtMoney(genelOdenen)+'</div></div>'
+        + '<div class="stat red"><div class="lbl">Toplam Borc</div><div class="val">'+fmtMoney(genelBorclu)+'</div></div>'
+        + '<div class="stat blue"><div class="lbl">Odeyen Daire</div><div class="val">'+odenenDaireSay+'</div></div>'
+        + '<div class="stat yellow"><div class="lbl">Borclu Daire</div><div class="val">'+borcluDaireSay+'</div></div>'
+        + '</div>'
+        + '<div class="muted" style="margin-bottom:6px">Her daire için ay ay durum (K=Odendi, X=Odenmedi, -=Bos):</div>'
+        + '<div style="max-height:380px;overflow-y:auto">';
+      data.forEach(function(d){
+        var aylarHtml = '';
+        d.aylikDeger.forEach(function(v, i){
+          var cls = 'bos', lbl = '·';
+          if(v === 'ODENDI'){ cls = 'odendi'; lbl = 'K'; }
+          else if(v === 'ODENMEDI'){ cls = 'borc'; lbl = 'X'; }
+          aylarHtml += '<span class="pdf-ay '+cls+'" title="'+AY_ADLARI[i]+'">'+lbl+'</span>';
+        });
+        body += '<div class="pdf-ozet-row">'
+          + '<div class="pdf-ozet-kod">'+esc(d.daire)+'</div>'
+          + '<div class="pdf-ozet-isim">'+esc(d.isim||'-')+'</div>'
+          + '<div style="margin-right:6px">'+aylarHtml+'</div>'
+          + '<div style="color:#2e7d32;font-weight:700;font-size:.7rem;white-space:nowrap">+'+Math.round(d.odenenTutar||0)+'</div>'
+          + (d.borcluTutar?'<div style="color:#c62828;font-weight:700;font-size:.7rem;white-space:nowrap;margin-left:4px">-'+Math.round(d.borcluTutar)+'</div>':'')
+          + '</div>';
       });
       body += '</div>'
-        + '<div class="uyari teal">ODENDI aylar '+fmtMoney(getAidatTutar())+' olarak kaydedilecek, BORCLU aylar ODENMEDI olarak isaretlenecek.</div>'
-        + '<button class="btn btn-success btn-block" style="margin-top:14px" onclick="pdfAktarOnaylaAidat()">Aidat Verilerini Uygula</button>'
+        + '<div class="uyari teal" style="margin-top:10px"><b>Uygulandığında:</b><br>'
+        + '1) Kişi kartlarında tik olan aylar ODENDI, sayı olan aylar ODENMEDI olarak işaretlenir.<br>'
+        + '2) Toplam '+fmtMoney(genelOdenen)+' gelir olarak banka hareketlerine eklenir.<br>'
+        + '3) Genel icmale yansır.</div>'
+        + '<button class="btn btn-success btn-block" style="margin-top:14px" onclick="pdfAktarOnaylaAidat()">Uygula</button>'
         + '<button class="btn btn-block" style="margin-top:8px" onclick="closeModal()">Iptal</button>';
     }
     else if(tip === 'icmal'){
@@ -2643,18 +2838,26 @@ function pdfAktarOnizlemeGoster(){
 
 function pdfAktarOnaylaAidat(){
   if(!isAdmin || !_pdfAktarOnizleme) return;
-  if(!confirm(_pdfAktarOnizleme.length+' dairenin aidat verisi guncellenecek. Emin misiniz?')) return;
+  if(!confirm(_pdfAktarOnizleme.length+' dairenin aidat verisi guncellenecek ve toplam gelir banka hareketlerine eklenecek. Emin misiniz?')) return;
   try{
     var AIDAT_TUTAR = getAidatTutar();
     var guncellenen = 0;
+    var toplamGelirEklenecek = 0;
+    var bugunISO = bugun();
+    var bugunTR = bugunISO.split('-').reverse().join('.');
+
     _pdfAktarOnizleme.forEach(function(d){
       var k = BLOK_ADI + d.daire;
       var a = getApt(k);
       if(!a){
         db.apartments.push({ blok:BLOK_ADI, daire:d.daire, isim:d.isim, telefon:'', plaka:'', evsahibi:'', evTel:'' });
+        a = getApt(k);
+        if(!db.aidat[k]) db.aidat[k] = new Array(12).fill('');
       } else if(d.isim && !a.isim){
         a.isim = d.isim;
       }
+
+      // Ay ay değerleri işle
       var aylik = d.aylikDeger.map(function(v){
         if(v === '') return '';
         if(v === 'ODENDI') return AIDAT_TUTAR;
@@ -2662,11 +2865,42 @@ function pdfAktarOnaylaAidat(){
         return v;
       });
       db.aidat[k] = aylik;
+
+      // Ödenen tutarı topla
+      var odenen = d.odenenTutar || 0;
+      if(odenen > 0){
+        toplamGelirEklenecek += odenen;
+
+        // Banka hareketi ekle (aynı gün + aynı daire + aynı tutar varsa atla)
+        var mukerrer = db.bankaHareketleri.some(function(h){
+          return h.daire === k && h.tutar === odenen && h.kaynak === 'aidat_pdf';
+        });
+        if(!mukerrer){
+          db.bankaHareketleri.push({
+            id: 'bh_aidat_' + Date.now() + '_' + Math.random().toString(36).slice(2,6),
+            daire: k,
+            tarih: bugunTR,
+            isim: a.isim || d.isim || '-',
+            tutar: odenen,
+            aciklama: 'Aidat PDF aktarimi',
+            kaynak: 'aidat_pdf',
+            tarihISO: bugunISO
+          });
+        }
+      }
       guncellenen++;
     });
+
+    if(toplamGelirEklenecek > 0){
+      bankaBakiEkle(toplamGelirEklenecek);
+    }
+
     saveDB(); closeModal(); safeRender();
-    alert(guncellenen+' dairenin aidat verisi guncellendi!');
-  }catch(e){ console.error(e); alert('Hata: '+e.message); }
+    alert(guncellenen+' dairenin aidat verisi guncellendi!\n\nGelir eklendi: '+fmtMoney(toplamGelirEklenecek));
+  }catch(e){
+    console.error('pdfAktarOnaylaAidat error:', e);
+    alert('Hata: '+e.message);
+  }
 }
 
 function pdfAktarOnaylaIcmal(){
@@ -2687,7 +2921,8 @@ function pdfAktarOnaylaIcmal(){
       if(!k || !getApt(k)) return;
       var mukerrer = db.bankaHareketleri.some(function(h){ return h.daire === k && h.tarih === g.tarih && Number(h.tutar) === Number(g.tutar); });
       if(mukerrer) return;
-      db.bankaHareketleri.push({ id: 'bh_' + Date.now() + '_' + Math.random().toString(36).slice(2,6), daire: k, tarih: g.tarih, isim: g.isim, tutar: g.tutar, aciklama: g.aciklama || '' });
+      db.bankaHareketleri.push({ id: 'bh_' + Date.now() + '_' + Math.random().toString(36).slice(2,6), daire: k, tarih: g.tarih, isim: g.isim, tutar: g.tutar, aciklama: g.aciklama || '', kaynak: 'icmal_pdf' });
+      bankaBakiEkle(Number(g.tutar)||0);
       eklenen++;
     });
     saveDB(); closeModal(); safeRender();
@@ -2716,7 +2951,7 @@ function pdfAktarOnaylaEnpara(){
         if(!k || !getApt(k)) return;
         var mukerrer = db.bankaHareketleri.some(function(x){ return x.daire === k && x.tarih === h.tarih && Number(x.tutar) === Number(h.tutar); });
         if(mukerrer) return;
-        db.bankaHareketleri.push({ id: 'bh_' + Date.now() + '_' + Math.random().toString(36).slice(2,8), daire: k, tarih: h.tarih, isim: h.isim, tutar: h.tutar, aciklama: h.aciklama || '' });
+        db.bankaHareketleri.push({ id: 'bh_' + Date.now() + '_' + Math.random().toString(36).slice(2,8), daire: k, tarih: h.tarih, isim: h.isim, tutar: h.tutar, aciklama: h.aciklama || '', kaynak: 'enpara_pdf' });
         eklenenGelir++;
       }
       else if(h.gider){
@@ -2778,7 +3013,6 @@ document.addEventListener('DOMContentLoaded', function(){
     }
     safeRenderNav();
     safeRender();
-    // Firebase'i async başlat — hata fırlatsa bile render zaten yapıldı
     initFirebase().catch(function(e){
       console.error('initFirebase unhandled:', e);
       setSyncStatus('error', 'Bulut baglantisi kurulamadi');
