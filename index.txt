@@ -273,9 +273,10 @@ function whatsappGonder(daireKodu, mesaj){
 function sonBildirim(daireKodu){ var liste = db.bildirimGecmisi.filter(function(b){ return b.daire===daireKodu; }); if(!liste.length) return null; return liste[liste.length-1]; }
 function sonBildirimKisa(daireKodu){ var s = sonBildirim(daireKodu); if(!s) return ''; var d = new Date(s.tarih); var gun = Math.floor((Date.now() - d.getTime())/(1000*60*60*24)); if(gun === 0) return 'bugun'; if(gun === 1) return 'dun'; return gun+' gun once'; }
 
-if(window.pdfjsLib){ window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js'; }
-
 async function pdfMetinCikar(file){
+  if(window.pdfjsLib && !window.pdfjsLib.GlobalWorkerOptions.workerSrc){
+    window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+  }
   var arrayBuffer = await file.arrayBuffer();
   var pdf = await window.pdfjsLib.getDocument({data: arrayBuffer}).promise;
   var tumMetin = [];
@@ -549,6 +550,7 @@ var sakinDaireKodu = null;
 
 function renderNav(){
   var nav = document.getElementById('bnav');
+  if(!nav) return;
   var items = '';
   if(isAdmin){
     items = '<button data-page="home" class="'+(currentPage==='home'?'active':'')+'"><span class="ic">🏠</span>Ana Sayfa</button>'
@@ -575,6 +577,7 @@ function navTo(page){
 
 function render(){
   var app = document.getElementById('app');
+  if(!app) return;
   if(currentPage === 'login'){ app.innerHTML = viewLogin(); return; }
   if(currentPage === 'sakin-login'){ app.innerHTML = viewSakinLogin(); return; }
   if(currentPage === 'sakin-home'){ app.innerHTML = viewSakinHome(); return; }
@@ -1260,7 +1263,8 @@ function secTum(){
   var secChk = document.getElementById('secChk');
   if(!tumChk) return;
   tumChk.classList.add('on'); secChk.classList.remove('on');
-  document.getElementById('aptSelectWrap').classList.add('hidden');
+  var wrap = document.getElementById('aptSelectWrap');
+  if(wrap) wrap.classList.add('hidden');
   var r = document.querySelector('input[name="kapsam"][value="tum"]'); if(r) r.checked = true;
   updateDaireBasi();
 }
@@ -1269,12 +1273,14 @@ function secSecili(){
   var secChk = document.getElementById('secChk');
   if(!secChk) return;
   tumChk.classList.remove('on'); secChk.classList.add('on');
-  document.getElementById('aptSelectWrap').classList.remove('hidden');
+  var wrap = document.getElementById('aptSelectWrap');
+  if(wrap) wrap.classList.remove('hidden');
   var r = document.querySelector('input[name="kapsam"][value="sec"]'); if(r) r.checked = true;
   updateDaireBasi();
 }
 function toggleApt(k){
   var el = document.getElementById('chk_'+k);
+  if(!el) return;
   var inp = el.querySelector('input');
   el.classList.toggle('on', inp.checked);
   updateDaireBasi();
@@ -2118,13 +2124,33 @@ function pdfAktarOnaylaEnpara(){
   alert(eklenenGelir+' gelir, '+eklenenGider+' gider kaydedildi.\nBanka bakiyesi: '+fmtMoney(sonBakiye));
 }
 
-function openModal(html){ document.getElementById('modBody').innerHTML = html; document.getElementById('mov').classList.add('open'); }
-function closeModal(){ document.getElementById('mov').classList.remove('open'); }
-document.getElementById('mov').addEventListener('click', function(e){ if(e.target.id==='mov') closeModal(); });
+function openModal(html){
+  var body = document.getElementById('modBody');
+  var mov = document.getElementById('mov');
+  if(body && mov){
+    body.innerHTML = html;
+    mov.classList.add('open');
+  }
+}
 
-renderNav();
-render();
-initFirebase();
+function closeModal(){
+  var mov = document.getElementById('mov');
+  var body = document.getElementById('modBody');
+  if(mov) mov.classList.remove('open');
+  if(body) body.innerHTML = '';
+}
+
+document.addEventListener('DOMContentLoaded', function(){
+  var mov = document.getElementById('mov');
+  if(mov){
+    mov.addEventListener('click', function(e){
+      if(e.target.id==='mov') closeModal();
+    });
+  }
+  renderNav();
+  render();
+  initFirebase();
+});
 
 window.navTo = navTo;
 window.aptDetay = aptDetay;
